@@ -1,6 +1,7 @@
 package cn.myperf4j.core.recorder;
 
 import cn.myperf4j.base.buffer.IntBuf;
+import cn.myperf4j.base.util.ArrayUtils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  */
 
 /**
- * 默认使用该类作为 MyPerf4J 的 Recorder
+ * MyPerf4J默认使用的是 AccurateRecorder，如果需要使用 RoughRecorder，则在配置文件里加上 RecorderMode=rough
  * <p>
  * 该类用于粗略存储某一个方法在指定时间片内的响应时间
  * 为了进一步减小内存占用，只利用数组方式:
@@ -22,12 +23,15 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  */
 public class RoughRecorder extends Recorder {
 
-    private final AtomicIntegerArray timingArr;
+    private final AtomicIntegerArray zeroTimingArr;//存储响应时间低于 1ms 的记录
+
+    private final AtomicIntegerArray timingArr;//存储响应时间大于等于 1ms 的记录
 
     private final AtomicInteger diffCount;
 
     public RoughRecorder(int methodTag, int mostTimeThreshold) {
         super(methodTag);
+        this.zeroTimingArr = new AtomicIntegerArray(10);
         this.timingArr = new AtomicIntegerArray(mostTimeThreshold + 2);
         this.diffCount = new AtomicInteger(0);
     }
@@ -39,12 +43,17 @@ public class RoughRecorder extends Recorder {
         }
 
         int oldValue;
-        int elapsedTime = (int) ((endNanoTime - startNanoTime) / 1000000);
-        AtomicIntegerArray timingArr = this.timingArr;
-        if (elapsedTime < timingArr.length() - 1) {
-            oldValue = timingArr.getAndIncrement(elapsedTime);
+        int elapsedMicros = (int) ((endNanoTime - startNanoTime) / 1000);
+        if (elapsedMicros < 1000) {// < 1ms
+            oldValue = zeroTimingArr.getAndIncrement(elapsedMicros / 100);
         } else {
-            oldValue = timingArr.getAndIncrement(timingArr.length() - 1);
+            AtomicIntegerArray timingArr = this.timingArr;
+            int elapsedMills = elapsedMicros / 1000;
+            if (elapsedMills < timingArr.length() - 1) {
+                oldValue = timingArr.getAndIncrement(elapsedMills);
+            } else {
+                oldValue = timingArr.getAndIncrement(timingArr.length() - 1);
+            }
         }
 
         if (oldValue <= 0) {
@@ -55,11 +64,20 @@ public class RoughRecorder extends Recorder {
     @Override
     public int fillSortedRecords(IntBuf intBuf) {
         int totalCount = 0;
-        AtomicIntegerArray timingArr = this.timingArr;
-        for (int i = 0; i < timingArr.length(); ++i) {
-            int count = timingArr.get(i);
+        AtomicIntegerArray zeroTimingArr = this.zeroTimingArr;
+        for (int i = 0; i < zeroTimingArr.length(); ++i) {
+            int count = zeroTimingArr.get(i);
             if (count > 0) {
                 intBuf.write(i, count);
+                totalCount += count;
+            }
+        }
+
+        AtomicIntegerArray timingArr = this.timingArr;
+        for (int i = 1; i < timingArr.length(); ++i) {
+            int count = timingArr.get(i);
+            if (count > 0) {
+                intBuf.write(i * 10, count);
                 totalCount += count;
             }
         }
@@ -73,11 +91,8 @@ public class RoughRecorder extends Recorder {
 
     @Override
     public synchronized void resetRecord() {
-        AtomicIntegerArray timingArr = this.timingArr;
-        for (int i = 0; i < timingArr.length(); ++i) {
-            timingArr.set(i, 0);
-        }
-
+        ArrayUtils.reset(zeroTimingArr);
+        ArrayUtils.reset(timingArr);
         diffCount.set(0);
     }
 

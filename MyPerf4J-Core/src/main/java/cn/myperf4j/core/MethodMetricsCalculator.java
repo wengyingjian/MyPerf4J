@@ -51,14 +51,14 @@ public final class MethodMetricsCalculator {
         }
 
         result.setTotalCount(totalCount);
-        result.setMinTime(sortedRecords._getInt(0));
-        result.setMaxTime(sortedRecords._getInt(sortedRecords.writerIndex() - 2));
+        result.setMinTime(sortedRecords._getInt(0) / 10);
+        result.setMaxTime(sortedRecords._getInt(sortedRecords.writerIndex() - 2) / 10);
 
         int[] topPerIndexArr = getTopPercentileIndexArr(totalCount);
-        int[] topPerArr = result.getTpArr();
+        int[] topPerArr = result.getTpArr();//单位：ms
         int countMile = 0, perIndex = 0;
         double sigma = 0.0D;//∑
-        long totalTime = 0L;
+        long totalTime = 0L;//单位：0.1ms
         for (int i = 0, writerIdx = sortedRecords.writerIndex(); i < writerIdx; ) {
             int timeCost = sortedRecords._getInt(i++);
             int count = sortedRecords._getInt(i++);
@@ -68,7 +68,7 @@ public final class MethodMetricsCalculator {
             countMile += count;
             int index = topPerIndexArr[perIndex];
             if (countMile >= index) {
-                topPerArr[perIndex] = timeCost;
+                topPerArr[perIndex] = timeCost / 10;
                 perIndex++;
             }
 
@@ -76,9 +76,9 @@ public final class MethodMetricsCalculator {
         }
 
         double avgTime = ((double) totalTime) / totalCount;
-        result.setAvgTime(avgTime);
+        result.setAvgTime(avgTime / 10);
 
-        result.setStdDev(Math.sqrt((sigma / totalCount) - Math.pow(avgTime, 2.0)));
+        result.setStdDev(Math.sqrt((sigma / totalCount) - Math.pow(avgTime, 2.0)) / 10);
 
         return reviseStatistic(result);
     }

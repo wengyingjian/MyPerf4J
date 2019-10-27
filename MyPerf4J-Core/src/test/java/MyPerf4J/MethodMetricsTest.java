@@ -8,6 +8,7 @@ import cn.myperf4j.core.recorder.Recorder;
 import cn.myperf4j.core.recorder.Recorders;
 import cn.myperf4j.core.recorder.RoughRecorder;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -17,69 +18,105 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  */
 public class MethodMetricsTest {
 
-    @Test
-    public void test() {
-        Recorders recorders = new Recorders(new AtomicReferenceArray<Recorder>(10));
-        MethodTagMaintainer methodTagMaintainer = MethodTagMaintainer.getInstance();
+    private Recorders recorders = new Recorders(new AtomicReferenceArray<Recorder>(10));
 
+    private MethodTagMaintainer methodTagMaintainer = MethodTagMaintainer.getInstance();
+
+    private Recorder accurateRecorder;
+
+    private Recorder roughRecorder;
+
+    private Recorder emptyAccurateRecorder;
+
+    private Recorder emptyRoughRecorder;
+
+
+    @Before
+    public void init() {
         int methodId1 = methodTagMaintainer.addMethodTag(MethodTag.getGeneralInstance("", "Test", "Api", "m1", ""));
-        recorders.setRecorder(methodId1, AccurateRecorder.getInstance(0, 9000, 50));
-        testNormalRecord(recorders, methodTagMaintainer, methodId1);
+        accurateRecorder = AccurateRecorder.getInstance(methodId1, 9000, 10);
+        recorders.setRecorder(methodId1, accurateRecorder);
 
         int methodId2 = methodTagMaintainer.addMethodTag(MethodTag.getGeneralInstance("", "Test", "Api", "m2", ""));
-        recorders.setRecorder(methodId2, RoughRecorder.getInstance(0, 10000));
-        testNormalRecord(recorders, methodTagMaintainer, methodId2);
+        roughRecorder = RoughRecorder.getInstance(methodId2, 9999);
+        recorders.setRecorder(methodId2, roughRecorder);
 
+        //
         int methodId3 = methodTagMaintainer.addMethodTag(MethodTag.getGeneralInstance("", "Test", "Api", "m3", ""));
-        recorders.setRecorder(methodId3, RoughRecorder.getInstance(0, 10000));
-        testZeroRecor(recorders, methodTagMaintainer, methodId3);
+        emptyAccurateRecorder = RoughRecorder.getInstance(methodId3, 10000);
+        recorders.setRecorder(methodId3, emptyAccurateRecorder);
+
+        int methodId4 = methodTagMaintainer.addMethodTag(MethodTag.getGeneralInstance("", "Test", "Api", "m4", ""));
+        emptyRoughRecorder = RoughRecorder.getInstance(methodId4, 10000);
+        recorders.setRecorder(methodId4, emptyRoughRecorder);
+
+        //
+        recordTimes(accurateRecorder);
+        recordTimes(roughRecorder);
     }
 
-    private void testNormalRecord(Recorders recorders, MethodTagMaintainer methodTagMaintainer, int methodId) {
-        Recorder recorder = recorders.getRecorder(methodId);
+    private void recordTimes(Recorder recorder) {
         recorders.setStartTime(System.currentTimeMillis());
         long start = System.nanoTime();
-        for (long i = 0; i < 10000; ++i) {
-            recorder.recordTime(start, start + i * 1000 * 1000);
+        for (int i = 0; i < 10; i++) {
+            recorder.recordTime(start, start + i * 1000 * 100);
+        }
+
+        for (long i = 1; i < 10000; ++i) {
+            for (int j = 0; j < 10; j++) {
+                recorder.recordTime(start, start + i * 1000 * 1000);
+            }
         }
         recorders.setStopTime(System.currentTimeMillis());
+    }
 
-        MethodTag methodTag = methodTagMaintainer.getMethodTag(methodId);
+    @Test
+    public void test() {
+        testNormalRecord(accurateRecorder);
+        testNormalRecord(roughRecorder);
+
+        testEmptyRecord(emptyAccurateRecorder);
+        testEmptyRecord(emptyRoughRecorder);
+    }
+
+    private void testNormalRecord(Recorder recorder) {
+        MethodTag methodTag = methodTagMaintainer.getMethodTag(recorder.getMethodTagId());
         MethodMetrics methodMetrics = MethodMetricsCalculator.calPerfStats(recorder, methodTag, recorders.getStartTime(), recorders.getStopTime());
         System.out.println(methodMetrics);
         recorder.resetRecord();
 
-        Assert.assertEquals(methodMetrics.getMinTime(), 0);
-        assert methodMetrics.getAvgTime() == 4999.5D;
-        Assert.assertEquals(methodMetrics.getTP50(), 4999);
-        Assert.assertEquals(methodMetrics.getTP90(), 8999);
-        Assert.assertEquals(methodMetrics.getTP95(), 9499);
-        Assert.assertEquals(methodMetrics.getTP99(), 9899);
-        Assert.assertEquals(methodMetrics.getTP999(), 9989);
-        Assert.assertEquals(methodMetrics.getTP9999(), 9998);
-        Assert.assertEquals(methodMetrics.getTP100(), 9999);
-        Assert.assertEquals(methodMetrics.getTP100(), methodMetrics.getMaxTime());
+        Assert.assertEquals(0, methodMetrics.getMinTime());
+        Assert.assertEquals("4999.500045", String.valueOf(methodMetrics.getAvgTime()));
+        Assert.assertEquals(4999, methodMetrics.getTP50());
+        Assert.assertEquals(8999, methodMetrics.getTP90());
+        Assert.assertEquals(9499, methodMetrics.getTP95());
+        Assert.assertEquals(9899, methodMetrics.getTP99());
+        Assert.assertEquals(9989, methodMetrics.getTP999());
+        Assert.assertEquals(9998, methodMetrics.getTP9999());
+        Assert.assertEquals(9999, methodMetrics.getTP100());
+        Assert.assertEquals(methodMetrics.getMaxTime(), methodMetrics.getTP100());
+        Assert.assertEquals("2886.751253584815", String.valueOf(methodMetrics.getStdDev()));
     }
 
-    private void testZeroRecor(Recorders recorders, MethodTagMaintainer methodTagMaintainer, int methodId) {
-        Recorder recorder = recorders.getRecorder(methodId);
+    private void testEmptyRecord(Recorder recorder) {
         recorders.setStartTime(System.currentTimeMillis());
         recorders.setStopTime(System.currentTimeMillis() + 1000);
 
-        MethodTag methodTag = methodTagMaintainer.getMethodTag(methodId);
+        MethodTag methodTag = methodTagMaintainer.getMethodTag(recorder.getMethodTagId());
         MethodMetrics methodMetrics = MethodMetricsCalculator.calPerfStats(recorder, methodTag, recorders.getStartTime(), recorders.getStopTime());
         System.out.println(methodMetrics);
         recorder.resetRecord();
 
-        Assert.assertEquals(methodMetrics.getMinTime(), -1);
-        assert methodMetrics.getAvgTime() == -1D;
-        Assert.assertEquals(methodMetrics.getTP50(), -1);
-        Assert.assertEquals(methodMetrics.getTP90(), -1);
-        Assert.assertEquals(methodMetrics.getTP95(), -1);
-        Assert.assertEquals(methodMetrics.getTP99(), -1);
-        Assert.assertEquals(methodMetrics.getTP999(), -1);
-        Assert.assertEquals(methodMetrics.getTP9999(), -1);
-        Assert.assertEquals(methodMetrics.getTP100(), -1);
-        Assert.assertEquals(methodMetrics.getTP100(), methodMetrics.getMaxTime());
+        Assert.assertEquals(-1, methodMetrics.getMinTime());
+        Assert.assertEquals("-1.0", String.valueOf(methodMetrics.getAvgTime()));
+        Assert.assertEquals(-1, methodMetrics.getTP50());
+        Assert.assertEquals(-1, methodMetrics.getTP90());
+        Assert.assertEquals(-1, methodMetrics.getTP95());
+        Assert.assertEquals(-1, methodMetrics.getTP99());
+        Assert.assertEquals(-1, methodMetrics.getTP999());
+        Assert.assertEquals(-1, methodMetrics.getTP9999());
+        Assert.assertEquals(-1, methodMetrics.getTP100());
+        Assert.assertEquals(-1, methodMetrics.getTP100(), methodMetrics.getMaxTime());
+        Assert.assertEquals("0.0", String.valueOf(methodMetrics.getStdDev()));
     }
 }

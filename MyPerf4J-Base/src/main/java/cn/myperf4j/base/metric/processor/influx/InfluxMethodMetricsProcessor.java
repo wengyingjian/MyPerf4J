@@ -66,7 +66,6 @@ public class InfluxMethodMetricsProcessor extends AbstractMethodMetricsProcessor
                 .append(",TP99=").append(methodMetrics.getTP99()).append('i')
                 .append(",TP999=").append(methodMetrics.getTP999()).append('i')
                 .append(",TP9999=").append(methodMetrics.getTP9999()).append('i')
-                .append(",TP100=").append(methodMetrics.getTP100()).append('i')
                 .append(' ').append(startNanos);
         return sb.toString();
     }
