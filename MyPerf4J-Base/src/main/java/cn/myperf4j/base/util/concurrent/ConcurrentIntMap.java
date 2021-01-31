@@ -80,7 +80,8 @@ public final class ConcurrentIntMap implements Serializable {
     }
 
     private int findKeyIdx(final int key) {
-        final int startIdx = hashIdx(key);
+        final int mask = this.mask;
+        final int startIdx = hashIdx(key, mask);
         int idx = startIdx;
         while (true) {
             if (getRaw(checkedByteOffset(idx + 1)) == 0) {
@@ -92,17 +93,17 @@ public final class ConcurrentIntMap implements Serializable {
             }
 
             // Conflict, keep probing ...
-            if ((idx = probeNext(idx)) == startIdx) {
+            if ((idx = probeNext(idx, mask)) == startIdx) {
                 return -1;
             }
         }
     }
 
-    private int hashIdx(int key) {
+    private int hashIdx(int key, int mask) {
         return keyIdx(hash(key) & mask, mask);
     }
 
-    private int probeNext(int idx) {
+    private int probeNext(int idx, int mask) {
         return keyIdx((idx + 2) & mask, mask);
     }
 
@@ -123,11 +124,12 @@ public final class ConcurrentIntMap implements Serializable {
             throw new IllegalArgumentException("Invalid value[" + value + "]");
         }
 
-        final int startIdx = hashIdx(key);
+        final int mask = this.mask;
+        final int startIdx = hashIdx(key, mask);
         int idx = startIdx;
+        final long kvLong = ((long) key) << 32 | value;
         while (true) {
-            if (compareAndSetRaw(checkedByteOffset(idx + 1), 0, value)) {
-                setRaw(idx, key);
+            if (compareAndSwapLongRaw(checkedByteOffset(idx), 0, kvLong)) {
                 growSize();
                 return 0;
             } else if (key == getRaw(checkedByteOffset(idx))) { // replace
@@ -136,14 +138,18 @@ public final class ConcurrentIntMap implements Serializable {
                 return oldValue;
             }
 
-            if ((idx = probeNext(idx)) == startIdx) {
+            if ((idx = probeNext(idx, mask)) == startIdx) {
                 throw new IllegalStateException("Unable to insert");
             }
         }
     }
 
-    private boolean compareAndSetRaw(long offset, int expect, int update) {
+    private boolean compareAndSwapIntRaw(long offset, int expect, int update) {
         return unsafe.compareAndSwapInt(array, offset, expect, update);
+    }
+
+    private boolean compareAndSwapLongRaw(long offset, long expect, long update) {
+        return unsafe.compareAndSwapLong(array, offset, expect, update);
     }
 
     private void setRaw(int idx, int newValue) {
@@ -168,9 +174,7 @@ public final class ConcurrentIntMap implements Serializable {
     private void rehash(int newCapacity) {
         final int[] oldArray = this.array;
         final int[] newArray = new int[newCapacity];
-        this.array = newArray;
-        this.maxSize = calcMaxSize(newCapacity);
-        this.mask = newCapacity - 1;
+        final int newMask = newCapacity - 1;
 
         // Insert to the new arrays.
         for (int i = 0; i < oldArray.length; i += 2) {
@@ -179,7 +183,7 @@ public final class ConcurrentIntMap implements Serializable {
             if (oldKey >= 0 && oldVal != 0) {
                 // Inlined put(), but much simpler: we don't need to worry about
                 // duplicated keys, growing/rehashing, or failing to insert.
-                int index = hashIdx(oldKey);
+                int index = hashIdx(oldKey, newMask);
                 while (true) {
                     if (newArray[index] == 0 && newArray[index + 1] <= 0) {
                         newArray[index] = oldKey;
@@ -188,10 +192,14 @@ public final class ConcurrentIntMap implements Serializable {
                     }
 
                     // Conflict, keep probing. Can wrap around, but never reaches startIndex again.
-                    index = probeNext(index);
+                    index = probeNext(index, newMask);
                 }
             }
         }
+
+        this.array = newArray;
+        this.mask = newMask;
+        this.maxSize = calcMaxSize(newCapacity);
     }
 
     public int size() {
