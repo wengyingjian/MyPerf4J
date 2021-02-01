@@ -19,6 +19,7 @@ public final class ConcurrentIntMap implements Serializable {
     private static final int shift = 31 - Integer.numberOfLeadingZeros(scale);
 
     private static final int HASH_BITS = 0x7FFFFFFF; // usable bits of normal node hash
+    private static final float DEFAULT_LOAD_FACTOR = 0.5F;
 
     private static final AtomicIntegerFieldUpdater<ConcurrentIntMap> SIZE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(ConcurrentIntMap.class, "size");
@@ -61,17 +62,16 @@ public final class ConcurrentIntMap implements Serializable {
     }
 
     public ConcurrentIntMap(int initialCapacity) {
-        final int tableSize = tableSizeFor(initialCapacity);
+        final int tableSize = tableSizeFor(initialCapacity << 1);
         this.array = new int[tableSize];
         this.size = 0;
         this.mask = array.length - 1;
-        this.maxSize = calcMaxSize(tableSize);
+        this.maxSize = calcMaxSize(tableSize >> 1);
     }
 
-    private int calcMaxSize(int capacity) {
-        // Clip the upper bound so that there will always be at least one available slot.
-        int upperBound = capacity - 1;
-        return Math.min(upperBound, capacity >> 1);
+    private int calcMaxSize(int keySize) {
+        final int upperBound = keySize - 1;
+        return Math.min(upperBound, (int) (keySize * DEFAULT_LOAD_FACTOR));
     }
 
     public int get(final int key) {
@@ -111,7 +111,7 @@ public final class ConcurrentIntMap implements Serializable {
         if ((idx & 0x01) == 0) {
             return idx;
         } else {
-            return idx + 1 <= maxIdx ? idx + 1 : idx - 1;
+            return idx + 1 <= maxIdx ? idx + 1 : 0;
         }
     }
 
@@ -199,7 +199,7 @@ public final class ConcurrentIntMap implements Serializable {
 
         this.array = newArray;
         this.mask = newMask;
-        this.maxSize = calcMaxSize(newCapacity);
+        this.maxSize = calcMaxSize(newCapacity >> 1);
     }
 
     public int size() {
