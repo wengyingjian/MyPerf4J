@@ -89,15 +89,15 @@ public final class ConcurrentIntCounter implements Serializable {
         }
     }
 
-    private int hashIdx(int key, int mask) {
+    private static int hashIdx(int key, int mask) {
         return keyIdx(key & mask, mask);
     }
 
-    private int probeNext(int idx, int mask) {
+    private static int probeNext(int idx, int mask) {
         return keyIdx((idx + 2) & mask, mask);
     }
 
-    private int keyIdx(int idx, int maxIdx) {
+    private static int keyIdx(int idx, int maxIdx) {
         if ((idx & 0x01) == 0) {
             return idx;
         } else {
@@ -105,25 +105,29 @@ public final class ConcurrentIntCounter implements Serializable {
         }
     }
 
-    public int increase(int key, int delta) {
+    public int incrementAndGet(final int key, final int delta) {
         final int[] array = this.array;
         final int mask = array.length - 1;
         final int startIdx = hashIdx(key, mask);
         int idx = startIdx;
-        while (true) {
-            final long kOffset = checkedByteOffset(idx);
-            final int k = unsafe.getIntVolatile(array, kOffset);
-            if (key == k) { //increase
-                return getAndAdd(array, checkedByteOffset(idx + 1), delta);
-            }
+//        if (key == unsafe.getIntVolatile(array, checkedByteOffset(idx))) { //increase
+//            return addAndGet(array, checkedByteOffset(idx + 1), delta);
+//        }
 
-            if (k == 0) {
+        int k;
+        long kOffset;
+        while (true) {
+            kOffset = checkedByteOffset(idx);
+            k = unsafe.getIntVolatile(array, kOffset);
+            if (k == key) { //increase
+                return addAndGet(array, checkedByteOffset(idx + 1), delta);
+            } else if (k == 0) { //try set
                 final long kvLong = ((long) delta) << 32 | key;
                 if (unsafe.compareAndSwapLong(array, kOffset, 0, kvLong)) {
                     growSize();
                     return 0;
                 } else if (key == unsafe.getIntVolatile(array, kOffset)) {
-                    return getAndAdd(array, checkedByteOffset(idx + 1), delta);
+                    return addAndGet(array, checkedByteOffset(idx + 1), delta);
                 }
             }
 
@@ -133,11 +137,12 @@ public final class ConcurrentIntCounter implements Serializable {
         }
     }
 
-    private int getAndAdd(int[] array, long byteOffset, int delta) {
+    private int addAndGet(int[] array, long byteOffset, int delta) {
         while (true) {
             final int current = unsafe.getIntVolatile(array, byteOffset);
-            if (unsafe.compareAndSwapInt(array, byteOffset, current, current + delta)) {
-                return current;
+            final int next = current + delta;
+            if (unsafe.compareAndSwapInt(array, byteOffset, current, next)) {
+                return next;
             }
         }
     }
@@ -154,8 +159,6 @@ public final class ConcurrentIntCounter implements Serializable {
 
         synchronized (this) {
             if (size >= maxSize) {
-//                System.out.println("Thread: " + Thread.currentThread().getId() + " process grow: size=" + size +
-//                        ", maxSize=" + maxSize);
                 final int newCapacity = oldArray.length << 1;
                 this.array = new int[newCapacity];
                 this.size = 0;
@@ -165,7 +168,7 @@ public final class ConcurrentIntCounter implements Serializable {
                     final int oldKey = oldArray[i];
                     final int oldVal = oldArray[i + 1];
                     if (oldKey >= 0 && oldVal != 0) {
-                        increase(oldKey, oldVal);
+                        incrementAndGet(oldKey, oldVal);
                     }
                 }
             }

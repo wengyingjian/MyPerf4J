@@ -20,15 +20,15 @@ public class ConcurrentIntCounterTest {
     @Test
     public void testIncrease() {
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
-        Assert.assertEquals(0, intMap.increase(1, 1));
+        Assert.assertEquals(0, intMap.incrementAndGet(1, 1));
         Assert.assertEquals(1, intMap.get(1));
-        Assert.assertEquals(1, intMap.increase(1, 2));
+        Assert.assertEquals(1, intMap.incrementAndGet(1, 2));
         Assert.assertEquals(3, intMap.get(1));
 
         intMap.reset();
 
         for (int i = 1; i < 10240; i++) {
-            intMap.increase(i, i);
+            intMap.incrementAndGet(i, i);
         }
 
         for (int i = 1; i < 10240; i++) {
@@ -41,14 +41,14 @@ public class ConcurrentIntCounterTest {
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
         Assert.assertEquals(intMap.size(), 0);
 
-        intMap.increase(1, 2);
+        intMap.incrementAndGet(1, 2);
         Assert.assertEquals(intMap.size(), 1);
 
-        intMap.increase(2, 2);
+        intMap.incrementAndGet(2, 2);
         Assert.assertEquals(intMap.size(), 2);
 
         for (int i = 1; i < 5; i++) {
-            intMap.increase(i, i);
+            intMap.incrementAndGet(i, i);
         }
         Assert.assertEquals(4, intMap.size());
     }
@@ -59,7 +59,7 @@ public class ConcurrentIntCounterTest {
         Assert.assertEquals(intMap.size(), 0);
 
         for (int i = 1; i < 10240; i++) {
-            Assert.assertEquals(0, intMap.increase(i, i));
+            Assert.assertEquals(0, intMap.incrementAndGet(i, i));
         }
         Assert.assertEquals(10239, intMap.size());
 
@@ -73,7 +73,7 @@ public class ConcurrentIntCounterTest {
 
     @Test
     public void test() throws InterruptedException, BrokenBarrierException {
-        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(128);
+        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(128 * 1024 * 1024);
         final AtomicIntArray intArray = new AtomicIntArray(128 * 1024 * 1024);
         final ConcurrentMap<Integer, AtomicInteger> integerHashMap = new ConcurrentHashMap<>(128);
         final int threadCnt = 4;
@@ -92,7 +92,7 @@ public class ConcurrentIntCounterTest {
 
                     try {
                         for (int k = 0; k < 64 * 1024; k++) {
-                            intMap.increase(k, 1);
+                            intMap.incrementAndGet(k, 1);
                             intArray.incrementAndGet(k);
                             increase(integerHashMap, k);
                         }
@@ -112,10 +112,14 @@ public class ConcurrentIntCounterTest {
         System.out.println("Thread: M" + Thread.currentThread().getId() + " starting...");
 
         barrier.await();
+        executor.shutdownNow();
 
         for (Map.Entry<Integer, AtomicInteger> entry : integerHashMap.entrySet()) {
-            Assert.assertEquals(entry.getValue().intValue(), intMap.get(entry.getKey()));
-//            Assert.assertEquals(threadCnt, entry.getValue().intValue());
+            final Integer key = entry.getKey();
+            final AtomicInteger value = entry.getValue();
+            Assert.assertEquals(threadCnt, value.intValue());
+            Assert.assertEquals(threadCnt, intMap.get(key));
+            Assert.assertEquals(threadCnt, intArray.get(key));
         }
     }
 

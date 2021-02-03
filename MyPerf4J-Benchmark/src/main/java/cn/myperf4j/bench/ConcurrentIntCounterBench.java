@@ -33,9 +33,7 @@ public class ConcurrentIntCounterBench {
 
     private ConcurrentMap<Integer, AtomicInteger> integerMap;
 
-    private int[] keys = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-            10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29};
+    private final int[] keys = {0, 8, 16, 24, 32, 40, 48, 56};
 
     @Setup
     public void setup() {
@@ -46,33 +44,33 @@ public class ConcurrentIntCounterBench {
 
     @Benchmark
     public int intMapBench() {
-//        int tmp = 0;
-//        for (int i = 0; i < keys.length; i++) {
-//            tmp += intMap.increase(keys[i], 1);
-//        }
-//        return tmp;
-        return intMap.increase(1, 1);
+        int tmp = 0;
+        for (int i = 0; i < keys.length; i++) {
+            tmp += intMap.incrementAndGet(keys[i], 1);
+        }
+        return tmp;
+//        return intMap.incrementAndGet(1, 1);
     }
 
     @Benchmark
     public int intArrayBench() {
-//        int tmp = 0;
-//        for (int i = 0; i < keys.length; i++) {
-//            tmp += intArray.incrementAndGet(keys[i]);
-//        }
-////        Blackhole.consumeCPU(1000);
-//        return tmp;
-        return intArray.incrementAndGet(1);
+        int tmp = 0;
+        for (int i = 0; i < keys.length; i++) {
+            tmp += intArray.incrementAndGet(keys[i]);
+        }
+//        Blackhole.consumeCPU(1000);
+        return tmp;
+//        return intArray.incrementAndGet(1);
     }
 
     @Benchmark
     public int integerMapBench() {
-//        int tmp = 0;
-//        for (int i = 0; i < keys.length; i++) {
-//            tmp += increase(integerMap, keys[i]);
-//        }
-//        return tmp;
-        return increase(integerMap, 1);
+        int tmp = 0;
+        for (int i = 0; i < keys.length; i++) {
+            tmp += increase(integerMap, keys[i]);
+        }
+        return tmp;
+//        return increase(integerMap, 1);
     }
 
     private int increase(ConcurrentMap<Integer, AtomicInteger> integerHashMap, int k) {
