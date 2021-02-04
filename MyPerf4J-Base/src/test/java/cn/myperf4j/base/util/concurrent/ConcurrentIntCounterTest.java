@@ -73,6 +73,22 @@ public class ConcurrentIntCounterTest {
     }
 
     @Test
+    public void testConflict() {
+        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(8);
+        for (int i = 0; i < 2; i++) {
+            intMap.incrementAndGet(0, 1);
+            intMap.incrementAndGet(8, 1);
+            intMap.incrementAndGet(16, 1);
+        }
+
+        for (int i = 0; i < 2; i++) {
+            intMap.get(0);
+            intMap.get(8);
+            intMap.get(16);
+        }
+    }
+
+    @Test
     public void testSingleThread() {
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(128 * 1024);
         final AtomicIntegerArray intArray = new AtomicIntegerArray(128 * 1024);
@@ -93,8 +109,8 @@ public class ConcurrentIntCounterTest {
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
                 intMap.incrementAndGet(j, 1);
-                intArray.incrementAndGet(j);
-                increase(integerMap, j);
+//                intArray.incrementAndGet(j);
+//                increase(integerMap, j);
             }
         }
         System.out.println("x=" + x + ", y=" + y + ", cost=" + (System.nanoTime() - start) / 1000_000 + "ms");

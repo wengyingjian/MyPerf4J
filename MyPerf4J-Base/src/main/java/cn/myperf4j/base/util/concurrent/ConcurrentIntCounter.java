@@ -18,7 +18,6 @@ public final class ConcurrentIntCounter implements Serializable {
     private static final int scale = Unsafe.ARRAY_INT_INDEX_SCALE;
     private static final int shift = 31 - Integer.numberOfLeadingZeros(scale);
 
-    private static final int HASH_BITS = 0x7FFFFFFF; // usable bits of normal node hash
     private static final float DEFAULT_LOAD_FACTOR = 0.5F;
 
     private static final AtomicIntegerFieldUpdater<ConcurrentIntCounter> SIZE_UPDATER =
@@ -90,19 +89,11 @@ public final class ConcurrentIntCounter implements Serializable {
     }
 
     private static int hashIdx(int key, int mask) {
-        return keyIdx(key & mask, mask);
+        return ((key & mask) << 1) & mask;
     }
 
     private static int probeNext(int idx, int mask) {
-        return keyIdx((idx + 2) & mask, mask);
-    }
-
-    private static int keyIdx(int idx, int maxIdx) {
-        if ((idx & 0x01) == 0) {
-            return idx;
-        } else {
-            return idx + 1 <= maxIdx ? idx + 1 : 0;
-        }
+        return (idx + 2) & mask;
     }
 
     public int incrementAndGet(final int key, final int delta) {
@@ -110,9 +101,6 @@ public final class ConcurrentIntCounter implements Serializable {
         final int mask = array.length - 1;
         final int startIdx = hashIdx(key, mask);
         int idx = startIdx;
-//        if (key == unsafe.getIntVolatile(array, checkedByteOffset(idx))) { //increase
-//            return addAndGet(array, checkedByteOffset(idx + 1), delta);
-//        }
 
         int k;
         long kOffset;
