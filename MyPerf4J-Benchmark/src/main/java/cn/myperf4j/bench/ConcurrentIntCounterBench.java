@@ -43,34 +43,45 @@ public class ConcurrentIntCounterBench {
     }
 
     @Benchmark
-    public int intMapBench() {
+    public int intMapSingleBench() {
+        return intMap.incrementAndGet(1, 1);
+    }
+
+    @Benchmark
+    public int intArraySingleBench() {
+        return intArray.incrementAndGet(1);
+    }
+
+    @Benchmark
+    public int integerMapSingleBench() {
+        return increase(integerMap, 1);
+    }
+
+//    @Benchmark
+    public int intMapMultiBench() {
         int tmp = 0;
         for (int i = 0; i < keys.length; i++) {
             tmp += intMap.incrementAndGet(keys[i], 1);
         }
         return tmp;
-//        return intMap.incrementAndGet(1, 1);
     }
 
-    @Benchmark
-    public int intArrayBench() {
+//    @Benchmark
+    public int intArrayMultiBench() {
         int tmp = 0;
         for (int i = 0; i < keys.length; i++) {
             tmp += intArray.incrementAndGet(keys[i]);
         }
-//        Blackhole.consumeCPU(1000);
         return tmp;
-//        return intArray.incrementAndGet(1);
     }
 
-    @Benchmark
-    public int integerMapBench() {
+//    @Benchmark
+    public int integerMapMultiBench() {
         int tmp = 0;
         for (int i = 0; i < keys.length; i++) {
             tmp += increase(integerMap, keys[i]);
         }
         return tmp;
-//        return increase(integerMap, 1);
     }
 
     private int increase(ConcurrentMap<Integer, AtomicInteger> integerHashMap, int k) {
