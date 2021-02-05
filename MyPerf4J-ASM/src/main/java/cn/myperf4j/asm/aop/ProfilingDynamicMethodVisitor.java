@@ -1,7 +1,6 @@
 package cn.myperf4j.asm.aop;
 
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 
@@ -32,7 +31,7 @@ public class ProfilingDynamicMethodVisitor extends AdviceAdapter {
     protected void onMethodExit(int opcode) {
         if ((IRETURN <= opcode && opcode <= RETURN) || opcode == ATHROW) {
             mv.visitVarInsn(LLOAD, startTimeIdentifier);
-            mv.visitVarInsn(Opcodes.ALOAD, 2);
+            mv.visitVarInsn(ALOAD, 2);
             mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "profiling",
                     "(JLjava/lang/reflect/Method;)V", false);
         }

@@ -44,7 +44,7 @@ public class ConcurrentIntCounterBench {
 
     @Benchmark
     public int intMapSingleBench() {
-        return intMap.incrementAndGet(1, 1);
+        return intMap.incrementAndGet(1);
     }
 
     @Benchmark
@@ -61,7 +61,7 @@ public class ConcurrentIntCounterBench {
     public int intMapMultiBench() {
         int tmp = 0;
         for (int i = 0; i < keys.length; i++) {
-            tmp += intMap.incrementAndGet(keys[i], 1);
+            tmp += intMap.incrementAndGet(keys[i]);
         }
         return tmp;
     }

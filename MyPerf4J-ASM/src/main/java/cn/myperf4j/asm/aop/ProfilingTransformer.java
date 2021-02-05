@@ -1,6 +1,5 @@
 package cn.myperf4j.asm.aop;
 
-import cn.myperf4j.base.config.ProfilingFilter;
 import cn.myperf4j.base.util.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -8,6 +7,13 @@ import org.objectweb.asm.ClassWriter;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+
+import static cn.myperf4j.base.config.ProfilingFilter.isNeedInject;
+import static cn.myperf4j.base.config.ProfilingFilter.isNotNeedInject;
+import static cn.myperf4j.base.config.ProfilingFilter.isNotNeedInjectClassLoader;
+import static org.objectweb.asm.ClassReader.EXPAND_FRAMES;
+import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
+import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 
 /**
  * Created by LinShunkang on 2018/4/24
@@ -21,15 +27,15 @@ public class ProfilingTransformer implements ClassFileTransformer {
                             ProtectionDomain protectionDomain,
                             byte[] classFileBuffer) {
         try {
-            if (ProfilingFilter.isNotNeedInject(className)) {
+            if (isNotNeedInject(className)) {
                 return classFileBuffer;
             }
 
-            if (!ProfilingFilter.isNeedInject(className)) {
+            if (!isNeedInject(className)) {
                 return classFileBuffer;
             }
 
-            if (loader != null && ProfilingFilter.isNotNeedInjectClassLoader(loader.getClass().getName())) {
+            if (loader != null && isNotNeedInjectClassLoader(loader.getClass().getName())) {
                 return classFileBuffer;
             }
 
@@ -48,15 +54,15 @@ public class ProfilingTransformer implements ClassFileTransformer {
                             byte[] classFileBuffer) {
         if (needComputeMaxs(loader)) {
             ClassReader cr = new ClassReader(classFileBuffer);
-            ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+            ClassWriter cw = new ClassWriter(cr, COMPUTE_MAXS);
             ClassVisitor cv = new ProfilingClassAdapter(cw, className);
-            cr.accept(cv, ClassReader.EXPAND_FRAMES);
+            cr.accept(cv, EXPAND_FRAMES);
             return cw.toByteArray();
         } else {
             ClassReader cr = new ClassReader(classFileBuffer);
-            ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
+            ClassWriter cw = new ClassWriter(cr, COMPUTE_FRAMES);
             ClassVisitor cv = new ProfilingClassAdapter(cw, className);
-            cr.accept(cv, ClassReader.EXPAND_FRAMES);
+            cr.accept(cv, EXPAND_FRAMES);
             return cw.toByteArray();
         }
     }

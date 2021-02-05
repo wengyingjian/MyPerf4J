@@ -1,19 +1,26 @@
 package cn.myperf4j.asm.aop;
 
-import cn.myperf4j.base.config.LevelMappingFilter;
 import cn.myperf4j.base.config.ProfilingConfig;
-import cn.myperf4j.base.config.ProfilingFilter;
 import cn.myperf4j.base.util.Logger;
 import cn.myperf4j.base.util.TypeDescUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-import static org.objectweb.asm.Opcodes.*;
+import static cn.myperf4j.base.config.LevelMappingFilter.getClassLevel;
+import static cn.myperf4j.base.config.ProfilingFilter.isNotNeedInjectMethod;
+import static cn.myperf4j.base.util.TypeDescUtils.getSimpleClassName;
+import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
+import static org.objectweb.asm.Opcodes.ACC_BRIDGE;
+import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
+import static org.objectweb.asm.Opcodes.ACC_NATIVE;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ASM8;
 
 /**
  * Created by LinShunkang on 2018/4/15
@@ -32,14 +39,14 @@ public class ProfilingClassAdapter extends ClassVisitor {
 
     private boolean isInvocationHandler;
 
-    private final List<String> fieldNameList = new ArrayList<>();
+    private final Set<String> fieldNames = new HashSet<>();
 
     public ProfilingClassAdapter(final ClassVisitor cv, String innerClassName) {
         super(ASM8, cv);
         this.innerClassName = innerClassName;
         this.fullClassName = innerClassName.replace('/', '.');
-        this.simpleClassName = TypeDescUtils.getSimpleClassName(innerClassName);
-        this.classLevel = LevelMappingFilter.getClassLevel(simpleClassName);
+        this.simpleClassName = getSimpleClassName(innerClassName);
+        this.classLevel = getClassLevel(simpleClassName);
     }
 
     @Override
@@ -68,9 +75,10 @@ public class ProfilingClassAdapter extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         String upFieldName = name.substring(0, 1).toUpperCase() + name.substring(1);
-        fieldNameList.add("get" + upFieldName);
-        fieldNameList.add("set" + upFieldName);
-        fieldNameList.add("is" + upFieldName);
+        fieldNames.add(name);
+        fieldNames.add("get" + upFieldName);
+        fieldNames.add("set" + upFieldName);
+        fieldNames.add("is" + upFieldName);
 
         return super.visitField(access, name, desc, signature, value);
     }
@@ -86,13 +94,13 @@ public class ProfilingClassAdapter extends ClassVisitor {
         }
 
         String classMethodName = simpleClassName + "." + name;
-        if (ProfilingFilter.isNotNeedInjectMethod(classMethodName)) {
+        if (isNotNeedInjectMethod(classMethodName)) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
         String desc4Human = TypeDescUtils.getMethodParamsDesc(desc);
         classMethodName = classMethodName + desc4Human;
-        if (ProfilingFilter.isNotNeedInjectMethod(classMethodName)) {
+        if (isNotNeedInjectMethod(classMethodName)) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
@@ -128,12 +136,7 @@ public class ProfilingClassAdapter extends ClassVisitor {
         if ("<init>".equals(name) || "<clinit>".equals(name)) {
             return false;
         }
-
-        if (fieldNameList.contains(name) || ProfilingFilter.isNotNeedInjectMethod(name)) {
-            return false;
-        }
-
-        return true;
+        return !fieldNames.contains(name) && !isNotNeedInjectMethod(name);
     }
 
     private boolean isInvokeMethod(String methodName, String methodDesc) {

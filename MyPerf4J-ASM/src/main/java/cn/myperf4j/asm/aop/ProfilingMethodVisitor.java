@@ -11,6 +11,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 
+import static org.objectweb.asm.Type.LONG_TYPE;
+
 /**
  * Created by LinShunkang on 2018/4/15
  */
@@ -65,7 +67,7 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
             maintainer.addRecorder(methodTagId, recorderConf.getProfilingParam(innerClassName + "/" + methodName));
 
             mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "nanoTime", "()J", false);
-            startTimeIdentifier = newLocal(Type.LONG_TYPE);
+            startTimeIdentifier = newLocal(LONG_TYPE);
             mv.visitVarInsn(LSTORE, startTimeIdentifier);
         }
     }

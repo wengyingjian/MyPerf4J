@@ -96,7 +96,11 @@ public final class ConcurrentIntCounter implements Serializable {
         return (idx + 2) & mask;
     }
 
-    public int incrementAndGet(final int key, final int delta) {
+    public int incrementAndGet(final int key) {
+        return addAndGet(key, 1);
+    }
+
+    public int addAndGet(final int key, final int delta) {
         final int[] array = this.array;
         final int mask = array.length - 1;
         final int startIdx = hashIdx(key, mask);
@@ -156,7 +160,7 @@ public final class ConcurrentIntCounter implements Serializable {
                     final int oldKey = oldArray[i];
                     final int oldVal = oldArray[i + 1];
                     if (oldKey >= 0 && oldVal != 0) {
-                        incrementAndGet(oldKey, oldVal);
+                        addAndGet(oldKey, oldVal);
                     }
                 }
             }

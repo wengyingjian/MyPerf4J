@@ -21,15 +21,15 @@ public class ConcurrentIntCounterTest {
     @Test
     public void testIncrease() {
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
-        Assert.assertEquals(0, intMap.incrementAndGet(1, 1));
+        Assert.assertEquals(0, intMap.incrementAndGet(1));
         Assert.assertEquals(1, intMap.get(1));
-        Assert.assertEquals(3, intMap.incrementAndGet(1, 2));
+        Assert.assertEquals(3, intMap.addAndGet(1, 2));
         Assert.assertEquals(3, intMap.get(1));
 
         intMap.reset();
 
         for (int i = 1; i < 10240; i++) {
-            intMap.incrementAndGet(i, i);
+            intMap.addAndGet(i, i);
         }
 
         for (int i = 1; i < 10240; i++) {
@@ -42,14 +42,14 @@ public class ConcurrentIntCounterTest {
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
         Assert.assertEquals(intMap.size(), 0);
 
-        intMap.incrementAndGet(1, 2);
+        intMap.addAndGet(1, 2);
         Assert.assertEquals(intMap.size(), 1);
 
-        intMap.incrementAndGet(2, 2);
+        intMap.addAndGet(2, 2);
         Assert.assertEquals(intMap.size(), 2);
 
         for (int i = 1; i < 5; i++) {
-            intMap.incrementAndGet(i, i);
+            intMap.addAndGet(i, i);
         }
         Assert.assertEquals(4, intMap.size());
     }
@@ -60,7 +60,7 @@ public class ConcurrentIntCounterTest {
         Assert.assertEquals(intMap.size(), 0);
 
         for (int i = 1; i < 10240; i++) {
-            Assert.assertEquals(0, intMap.incrementAndGet(i, i));
+            Assert.assertEquals(0, intMap.addAndGet(i, i));
         }
         Assert.assertEquals(10239, intMap.size());
 
@@ -76,9 +76,9 @@ public class ConcurrentIntCounterTest {
     public void testConflict() {
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(8);
         for (int i = 0; i < 2; i++) {
-            intMap.incrementAndGet(0, 1);
-            intMap.incrementAndGet(8, 1);
-            intMap.incrementAndGet(16, 1);
+            intMap.incrementAndGet(0);
+            intMap.incrementAndGet(8);
+            intMap.incrementAndGet(16);
         }
 
         for (int i = 0; i < 2; i++) {
@@ -108,7 +108,7 @@ public class ConcurrentIntCounterTest {
         final long start = System.nanoTime();
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
-                intMap.incrementAndGet(j, 1);
+                intMap.incrementAndGet(j);
 //                intArray.incrementAndGet(j);
 //                increase(integerMap, j);
             }
@@ -137,7 +137,7 @@ public class ConcurrentIntCounterTest {
 
                     try {
                         for (int k = 0; k < 64 * 1024; k++) {
-                            intMap.incrementAndGet(k, 1);
+                            intMap.incrementAndGet(k);
                             intArray.incrementAndGet(k);
                             increase(integerMap, k);
                         }
