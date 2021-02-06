@@ -13,6 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 /**
  * Created by LinShunkang on 2021/01/31
  */
@@ -90,7 +92,7 @@ public class ConcurrentIntCounterTest {
 
     @Test
     public void testSingleThread() {
-        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(128 * 1024);
+        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
         final AtomicIntegerArray intArray = new AtomicIntegerArray(128 * 1024);
         final ConcurrentMap<Integer, AtomicInteger> integerMap = new ConcurrentHashMap<>(128 * 1024);
         mode1(intMap, intArray, integerMap, 1024, 64);
@@ -99,6 +101,13 @@ public class ConcurrentIntCounterTest {
         mode1(intMap, intArray, integerMap, 16, 4 * 1024);
         mode1(intMap, intArray, integerMap, 4, 16 * 1024);
         mode1(intMap, intArray, integerMap, 1, 64 * 1024);
+
+        for (Map.Entry<Integer, AtomicInteger> entry : integerMap.entrySet()) {
+            final Integer key = entry.getKey();
+            final AtomicInteger value = entry.getValue();
+            Assert.assertEquals("intArray", value.intValue(), intArray.get(key));
+            Assert.assertEquals("intMap", value.intValue(), intMap.get(key));
+        }
     }
 
     private void mode1(ConcurrentIntCounter intMap,
@@ -109,8 +118,8 @@ public class ConcurrentIntCounterTest {
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
                 intMap.incrementAndGet(j);
-//                intArray.incrementAndGet(j);
-//                increase(integerMap, j);
+                intArray.incrementAndGet(j);
+                increase(integerMap, j);
             }
         }
         System.out.println("x=" + x + ", y=" + y + ", cost=" + (System.nanoTime() - start) / 1000_000 + "ms");
@@ -118,10 +127,11 @@ public class ConcurrentIntCounterTest {
 
     @Test
     public void testMultiThread() throws InterruptedException, BrokenBarrierException {
-        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(128 * 1024);
-        final AtomicIntArray intArray = new AtomicIntArray(128 * 1024);
-        final ConcurrentMap<Integer, AtomicInteger> integerMap = new ConcurrentHashMap<>(128 * 1024);
-        final int threadCnt = 4;
+        final int testTimes = 8 * 1024 * 1024;
+        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(testTimes + 1024);
+        final AtomicIntArray intArray = new AtomicIntArray(testTimes);
+        final ConcurrentMap<Integer, AtomicInteger> integerMap = new ConcurrentHashMap<>(testTimes);
+        final int threadCnt = 12;
         final ExecutorService executor = Executors.newFixedThreadPool(threadCnt);
         final CyclicBarrier barrier = new CyclicBarrier(threadCnt + 1);
         for (int i = 0; i < threadCnt; i++) {
@@ -136,13 +146,14 @@ public class ConcurrentIntCounterTest {
                     System.out.println("Thread: " + Thread.currentThread().getId() + " starting...");
 
                     try {
-                        for (int k = 0; k < 64 * 1024; k++) {
+                        for (int k = 0; k < testTimes; k++) {
                             intMap.incrementAndGet(k);
                             intArray.incrementAndGet(k);
                             increase(integerMap, k);
                         }
                     } finally {
                         try {
+                            System.out.println("Thread: " + Thread.currentThread().getId() + " stopping...");
                             barrier.await();
                         } catch (InterruptedException | BrokenBarrierException e) {
                             e.printStackTrace();
@@ -158,14 +169,16 @@ public class ConcurrentIntCounterTest {
         System.out.println("Thread: M" + Thread.currentThread().getId() + " starting...");
         barrier.await();
         System.out.println("Cost " + (System.nanoTime() - start) / 1000_000 + "ms");
-        executor.shutdownNow();
+        executor.shutdown();
+        executor.awaitTermination(3, SECONDS);
+//        executor.shutdownNow();
 
         for (Map.Entry<Integer, AtomicInteger> entry : integerMap.entrySet()) {
             final Integer key = entry.getKey();
             final AtomicInteger value = entry.getValue();
-            Assert.assertEquals(threadCnt, value.intValue());
-            Assert.assertEquals(threadCnt, intMap.get(key));
-            Assert.assertEquals(threadCnt, intArray.get(key));
+            Assert.assertEquals("integerMap", threadCnt, value.intValue());
+            Assert.assertEquals("intArray", threadCnt, intArray.get(key));
+            Assert.assertEquals("intMap", threadCnt, intMap.get(key));
         }
     }
 
