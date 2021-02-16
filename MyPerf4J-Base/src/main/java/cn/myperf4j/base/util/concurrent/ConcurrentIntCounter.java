@@ -4,6 +4,7 @@ import cn.myperf4j.base.util.UnsafeUtils;
 import sun.misc.Unsafe;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -66,6 +67,22 @@ public final class ConcurrentIntCounter implements Serializable {
         return unsafe.getIntVolatile(array, offset);
     }
 
+    private static long getLongRaw(int[] array, long offset) {
+        return unsafe.getLongVolatile(array, offset);
+    }
+
+    private static long getKvLong(int key, int value) {
+        return ((long) value) << 32 | key;
+    }
+
+    private static int getKey(long kvLong) {
+        return (int) kvLong;
+    }
+
+    private static int getValue(long kvLong) {
+        return (int) (kvLong >> 32);
+    }
+
     public ConcurrentIntCounter(int initialCapacity) {
         if (initialCapacity >= MAX_CAPACITY) {
             throw new IllegalArgumentException("Max initialCapacity need low than " + MAX_CAPACITY);
@@ -113,25 +130,36 @@ public final class ConcurrentIntCounter implements Serializable {
     }
 
     public int addAndGet(final int key, final int delta) {
-        final int[] array = this.array;
-        final int mask = array.length - 1;
-        final int startIdx = hashIdx(key, mask);
+        int[] array = this.array;
+        int mask = array.length - 1;
+        int startIdx = hashIdx(key, mask);
         int idx = startIdx;
 
-        int k;
-        long kOffset;
+        long kv, kOffset;
         while (true) {
             kOffset = byteOffset(idx, mask);
-            k = getIntRaw(array, kOffset);
-            if (k == key) { //increase
-                return addAndGet(array, byteOffset(idx + 1, mask), delta);
-            } else if (k == 0) { //try set
-                final long kvLong = ((long) delta) << 32 | key;
-                if (unsafe.compareAndSwapLong(array, kOffset, 0L, kvLong)) {
+            if ((int) (kv = getLongRaw(array, kOffset)) == key) { //increase
+                if (tryAddLong(array, kOffset, key, delta)) {
+                    return getValue(kv) + delta;
+                } else { //说明正在 rehash
+                    array = this.array;
+                    mask = array.length - 1;
+                    idx = startIdx = hashIdx(key, mask);
+                    continue;
+                }
+            } else if (kv == 0L) { //try set
+                if (unsafe.compareAndSwapLong(array, kOffset, 0L, getKvLong(key, delta))) {
                     growSize();
-                    return 0;
-                } else if (key == getIntRaw(array, kOffset)) {
-                    return addAndGet(array, byteOffset(idx + 1, mask), delta);
+                    return delta;
+                } else if ((int) (kv = getLongRaw(array, kOffset)) == key) {
+                    if (tryAddLong(array, kOffset, key, delta)) {
+                        return getValue(kv) + delta;
+                    } else { //说明正在 rehash
+                        array = this.array;
+                        mask = array.length - 1;
+                        idx = startIdx = hashIdx(key, mask);
+                        continue;
+                    }
                 }
             }
 
@@ -141,12 +169,17 @@ public final class ConcurrentIntCounter implements Serializable {
         }
     }
 
-    private int addAndGet(int[] array, long byteOffset, int delta) {
+    private boolean tryAddLong(final int[] array, final long byteOffset, final int key, final int delta) {
         while (true) {
-            final int current = getIntRaw(array, byteOffset);
-            final int next = current + delta;
-            if (unsafe.compareAndSwapInt(array, byteOffset, current, next)) {
-                return next;
+            final long current = getLongRaw(array, byteOffset);
+            if (key != getKey(current)) {
+//                System.err.println("tryAddLong(): key=" + key + ", but curKey=" + getKey(current));
+                return false;
+            }
+
+            final long next = getKvLong(key, getValue(current) + delta);
+            if (unsafe.compareAndSwapLong(array, byteOffset, current, next)) {
+                return true;
             }
         }
     }
@@ -156,15 +189,16 @@ public final class ConcurrentIntCounter implements Serializable {
             return;
         }
 
-        final int[] oldArray = this.array;
-        if (oldArray.length >= MAX_CAPACITY) {
+        if (array.length >= MAX_CAPACITY) {
             throw new IllegalStateException("Max capacity reached at size=" + size);
         }
 
         boolean needRehash;
+        int[] oldArray = null;
         synchronized (this) {
             if (needRehash = size >= maxSize) {
-                final int newCapacity = oldArray.length << 1;
+                oldArray = this.array;
+                final int newCapacity = array.length << 1;
                 this.array = new int[newCapacity];
                 this.size = 0;
                 this.maxSize = calcMaxSize(newCapacity >> 1);
@@ -178,13 +212,17 @@ public final class ConcurrentIntCounter implements Serializable {
 
     private void transfer(final int[] oldArray) {
         final int mask = oldArray.length - 1;
-        for (int i = 0; i < oldArray.length; i += 2) {
-            final int value = getIntRaw(oldArray, byteOffset(i + 1, mask));
-            if (value > 0) {
-                final int key = getIntRaw(oldArray, byteOffset(i, mask));
-                addAndGet(key, value);
+//        System.err.println("Thread " + Thread.currentThread().getId() + " begin rehash...");
+        for (int i = 0; i < 2; i++) {
+            for (int k = 0; k < oldArray.length; k += 2) {
+                final long offset = byteOffset(k, mask);
+                final long kvLong = getLongRaw(oldArray, offset);
+                if (kvLong != 0L && unsafe.compareAndSwapLong(oldArray, offset, kvLong, 0L)) {
+                    addAndGet(getKey(kvLong), getValue(kvLong));
+                }
             }
         }
+//        System.err.println("Thread " + Thread.currentThread().getId() + " rehashed.");
     }
 
     public int size() {
