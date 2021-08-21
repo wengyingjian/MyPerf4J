@@ -1,5 +1,6 @@
 package cn.myperf4j.base.util.concurrent;
 
+import cn.myperf4j.base.util.Logger;
 import cn.myperf4j.base.util.UnsafeUtils;
 import sun.misc.Unsafe;
 
@@ -21,16 +22,33 @@ public final class ConcurrentIntCounter implements Serializable {
     private static final int scale = Unsafe.ARRAY_INT_INDEX_SCALE;
     private static final int shift = 31 - Integer.numberOfLeadingZeros(scale);
 
+    private static final int SIZE_CTL_RACING = -1;
+    private static final int SIZE_CTL_REHASHING = -2;
+
     private static final float DEFAULT_LOAD_FACTOR = 0.5F;
 
     private static final int MAX_CAPACITY = MAX_VALUE >> 1;
 
-    private static final AtomicIntegerFieldUpdater<ConcurrentIntCounter> SIZE_UPDATER =
-            AtomicIntegerFieldUpdater.newUpdater(ConcurrentIntCounter.class, "size");
+    private static final AtomicIntegerFieldUpdater<ConcurrentIntCounter> SIZE_UPDATER;
+
+    private static final long SIZE_CTL;
+
+    static {
+        try {
+            SIZE_CTL = unsafe.objectFieldOffset(ConcurrentIntCounter.class.getDeclaredField("sizeCtl"));
+            SIZE_UPDATER = AtomicIntegerFieldUpdater.newUpdater(ConcurrentIntCounter.class, "size");
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+    }
 
     private volatile int[] array;
 
+    private volatile int[] nextArray;
+
     private volatile int size;
+
+    private volatile int sizeCtl;
 
     private volatile int maxSize;
 
@@ -91,6 +109,7 @@ public final class ConcurrentIntCounter implements Serializable {
         final int tableSize = tableSizeFor(initialCapacity << 1);
         this.array = new int[tableSize];
         this.size = 0;
+        this.sizeCtl = 0;
         this.maxSize = calcMaxSize(tableSize >> 1);
     }
 
@@ -130,7 +149,9 @@ public final class ConcurrentIntCounter implements Serializable {
     }
 
     public int addAndGet(final int key, final int delta) {
-        int[] array = this.array;
+        Logger.info("addAndGet（" + key + ", " + delta + ")...");
+
+        int[] array = getArray();
         int mask = array.length - 1;
         int startIdx = hashIdx(key, mask);
         int idx = startIdx;
@@ -142,38 +163,40 @@ public final class ConcurrentIntCounter implements Serializable {
                 if (tryAddLong(array, kOffset, key, delta)) {
                     return getValue(kv) + delta;
                 } else { //说明正在 rehash
-                    array = this.array;
-                    mask = array.length - 1;
-                    idx = startIdx = hashIdx(key, mask);
-                    continue;
+                    waitingTransfer(key, delta);
+                    return addAndGet(key, delta);
                 }
             } else if (kv == 0L) { //try set
                 if (unsafe.compareAndSwapLong(array, kOffset, 0L, getKvLong(key, delta))) {
-                    growSize();
+                    growSize(key, delta);
                     return delta;
                 } else if ((int) (kv = getLongRaw(array, kOffset)) == key) {
                     if (tryAddLong(array, kOffset, key, delta)) {
                         return getValue(kv) + delta;
                     } else { //说明正在 rehash
-                        array = this.array;
-                        mask = array.length - 1;
-                        idx = startIdx = hashIdx(key, mask);
-                        continue;
+                        waitingTransfer(key, delta);
+                        return addAndGet(key, delta);
                     }
                 }
             }
 
             if ((idx = probeNext(idx, mask)) == startIdx) {
-                throw new IllegalStateException("Unable to insert");
+                Logger.error("Unable to insert1, so try to growArray(" + key + ", " + delta + ")");
+                growArray(key, delta);
+//                waitingTransfer(key, delta);
+                return addAndGet(key, delta);
             }
         }
+    }
+
+    private int[] getArray() {
+        return this.sizeCtl != SIZE_CTL_REHASHING ? this.array : this.nextArray;
     }
 
     private boolean tryAddLong(final int[] array, final long byteOffset, final int key, final int delta) {
         while (true) {
             final long current = getLongRaw(array, byteOffset);
             if (key != getKey(current)) {
-//                System.err.println("tryAddLong(): key=" + key + ", but curKey=" + getKey(current));
                 return false;
             }
 
@@ -184,45 +207,131 @@ public final class ConcurrentIntCounter implements Serializable {
         }
     }
 
-    private void growSize() {
+    private void waitingTransfer(final int key, final int delta) {
+        while (sizeCtl < 0) {
+            Logger.info("waiting, key=" + key + ", delta=" + delta);
+            synchronized (this) {
+                while (sizeCtl < 0) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } finally {
+                        Logger.info("wait finished! key=" + key + ", " + "delta=" + delta);
+                    }
+                }
+            }
+        }
+    }
+
+    private void growSize(final int key, final int delta) {
         if (SIZE_UPDATER.incrementAndGet(this) < maxSize) {
             return;
         }
 
-        if (array.length >= MAX_CAPACITY) {
-            throw new IllegalStateException("Max capacity reached at size=" + size);
+        growArray(key, delta);
+    }
+
+    private void growArray(final int key, final int delta) {
+        final int length = array.length;
+        if (length >= MAX_CAPACITY) {
+            throw new IllegalStateException("Max capacity reached at size=" + sizeCtl);
         }
 
-        boolean needRehash;
-        int[] oldArray = null;
-        synchronized (this) {
-            if (needRehash = size >= maxSize) {
-                oldArray = this.array;
-                final int newCapacity = array.length << 1;
-                this.array = new int[newCapacity];
-                this.size = 0;
-                this.maxSize = calcMaxSize(newCapacity >> 1);
+        final int newCapacity = length << 1;
+        Logger.info("trying to transfer, key=" + key + ", delta=" + delta + ", newCapacity=" + newCapacity);
+
+        int sc;
+        while (true) {
+            if ((sc = sizeCtl) < 0) {
+                Logger.info("begin yield, sc=" + sc + ", " + "newCapacity=" + newCapacity);
+                waitingTransfer(key, delta);
+                break;
+            } else if (this.array.length >= newCapacity) { //不应该拿 sc 和 newCapacity 做对比！！！
+                Logger.info("sizeCtl=" + sc + ", array.length[" + array.length + "] >= newCapacity[" + newCapacity +
+                        "], so break!");
+                break;
+            } else if (unsafe.compareAndSwapInt(this, SIZE_CTL, sc, SIZE_CTL_RACING)) {
+                Logger.info("transferring, key=" + key + ", delta=" + delta + " sc=" + sc + ", newCapacity=" + newCapacity);
+                synchronized (this) {
+                    try {
+                        this.nextArray = new int[newCapacity];
+                        this.sizeCtl = SIZE_CTL_REHASHING;
+                        transfer(this.array, this.nextArray);
+//                        Logger.error("after transfer, key=" + key + ", " + "delta=" + delta + " sc=" + sc +
+//                                ", newCapacity=" + newCapacity + ", array=" + Arrays.toString(this.array) + ", " +
+//                                "nextArray=" + Arrays.toString(nextArray));
+
+                        this.array = this.nextArray;
+                        this.maxSize = calcMaxSize(newCapacity >> 1);
+                    } finally {
+                        this.sizeCtl = sc;
+                        this.nextArray = null;
+                        notifyAll();
+                        Logger.info("transferred, key=" + key + ", " + "delta=" + delta);
+                    }
+                }
+                break;
             }
-        }
-
-        if (needRehash) {
-            transfer(oldArray);
         }
     }
 
-    private void transfer(final int[] oldArray) {
-        final int mask = oldArray.length - 1;
-//        System.err.println("Thread " + Thread.currentThread().getId() + " begin rehash...");
-        for (int i = 0; i < 2; i++) {
-            for (int k = 0; k < oldArray.length; k += 2) {
-                final long offset = byteOffset(k, mask);
-                final long kvLong = getLongRaw(oldArray, offset);
-                if (kvLong != 0L && unsafe.compareAndSwapLong(oldArray, offset, kvLong, 0L)) {
-                    addAndGet(getKey(kvLong), getValue(kvLong));
+    private void transfer(final int[] fromArray, final int[] toArray) {
+        final int fromMask = fromArray.length - 1;
+        final int toMask = toArray.length - 1;
+
+        Logger.info("begin rehash, fromArray=" + Arrays.toString(fromArray));
+        for (int k = 0; k < fromArray.length; k += 2) {
+            final long offset = byteOffset(k, fromMask);
+            final long kvLong = getAndReset(fromArray, offset);
+            if (kvLong == 0L) {
+                continue;
+            }
+
+            final int key = getKey(kvLong);
+            final int value = getValue(kvLong);
+            final int startIdx = hashIdx(key, toMask);
+            int idx = startIdx;
+            long kOffset, kv;
+            while (true) {
+                kOffset = byteOffset(idx, toMask);
+                if ((int) (kv = getLongRaw(toArray, kOffset)) == key) { //increase
+                    SIZE_UPDATER.decrementAndGet(this);
+                    if (tryAddLong(toArray, kOffset, key, value)) {
+                        break;
+                    } else {
+                        Logger.error("It should not be arrive here1!");
+                        continue;
+                    }
+                } else if (kv == 0L) { //try set
+                    if (unsafe.compareAndSwapLong(toArray, kOffset, 0L, getKvLong(key, value))) {
+                        break;
+                    } else if (getIntRaw(toArray, kOffset) == key) {
+                        SIZE_UPDATER.decrementAndGet(this);
+                        if (tryAddLong(toArray, kOffset, key, value)) {
+                            break;
+                        } else { //说明正在 rehash
+                            Logger.error("It should not be arrive here1!");
+                            continue;
+                        }
+                    }
+                }
+
+                if ((idx = probeNext(idx, toMask)) == startIdx) {
+                    throw new IllegalStateException("Unable to insert2");
                 }
             }
         }
-//        System.err.println("Thread " + Thread.currentThread().getId() + " rehashed.");
+        Logger.info("rehashed！");
+    }
+
+    private long getAndReset(final int[] array, final long offset) {
+        while (true) {
+            final long current = getLongRaw(array, offset);
+            if (unsafe.compareAndSwapLong(array, offset, current, 0L)) {
+                return current;
+            }
+        }
     }
 
     public int size() {
@@ -233,6 +342,19 @@ public final class ConcurrentIntCounter implements Serializable {
         final int[] array = this.array;
         final int mask = array.length - 1;
         this.size = 0;
+        this.sizeCtl = 0;
+        this.nextArray = null;
         unsafe.setMemory(array, byteOffset(0, mask), (long) array.length * scale, (byte) 0);
+    }
+
+    @Override
+    public String toString() {
+        return "ConcurrentIntCounter{" +
+                "array=" + Arrays.toString(array) +
+                ", nextArray=" + Arrays.toString(nextArray) +
+                ", size=" + size +
+                ", sizeCtl=" + sizeCtl +
+                ", maxSize=" + maxSize +
+                '}';
     }
 }
