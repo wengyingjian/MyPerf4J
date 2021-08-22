@@ -121,25 +121,20 @@ public final class ConcurrentIntCounter implements Serializable {
     public int get(final int key) {
         final int[] array = this.array;
         final int mask = array.length - 1;
-        final int keyIdx = findKeyIdx(array, mask, key);
-        return keyIdx >= 0 ? getIntRaw(array, byteOffset(keyIdx + 1, mask)) : 0;
-    }
-
-    private int findKeyIdx(final int[] array, final int mask, final int key) {
         final int startIdx = hashIdx(key, mask);
         int idx = startIdx;
+
+        long kv, kOffset;
         while (true) {
-            if (getIntRaw(array, byteOffset(idx + 1, mask)) == 0) {
-                return -1;
+            kOffset = byteOffset(idx, mask);
+            if ((kv = getLongRaw(array, kOffset)) == 0L) {
+                return 0;
+            } else if (getKey(kv) == key) {
+                return getValue(kv);
             }
 
-            if (key == getIntRaw(array, byteOffset(idx, mask))) {
-                return idx;
-            }
-
-            // Conflict, keep probing ...
             if ((idx = probeNext(idx, mask)) == startIdx) {
-                return -1;
+                return 0;
             }
         }
     }

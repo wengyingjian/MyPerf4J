@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -154,11 +155,11 @@ public class ConcurrentIntCounterTest {
     }
 
     private static void testMultiThread0() throws InterruptedException, BrokenBarrierException {
-        final int testTimes = 1024;
+        final int testTimes = ThreadLocalRandom.current().nextInt(1024);
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
         final AtomicIntArray intArray = new AtomicIntArray(testTimes);
         final ConcurrentMap<Integer, AtomicInteger> integerMap = new ConcurrentHashMap<>(testTimes);
-        final int threadCnt = 12;
+        final int threadCnt = Runtime.getRuntime().availableProcessors();
         final ExecutorService executor = Executors.newFixedThreadPool(threadCnt);
         final CyclicBarrier barrier = new CyclicBarrier(threadCnt + 1);
         for (int i = 0; i < threadCnt; i++) {
@@ -196,7 +197,7 @@ public class ConcurrentIntCounterTest {
         long start = System.nanoTime();
         Logger.info("M starting...");
         barrier.await();
-        Logger.info("Cost " + (System.nanoTime() - start) / 1000_000 + "ms");
+        Logger.info("Cost " + (System.nanoTime() - start) / 1_000_000 + "ms");
 
         executor.shutdown();
         final boolean termination = executor.awaitTermination(1, SECONDS);
