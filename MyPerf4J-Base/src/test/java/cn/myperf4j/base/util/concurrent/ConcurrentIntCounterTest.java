@@ -31,15 +31,31 @@ public class ConcurrentIntCounterTest {
 
         intMap.reset();
 
+        final int testTimes = 10240;
         for (int i = 0; i < 2; i++) {
-            for (int j = 1; j < 10240; j++) {
-                intMap.addAndGet(j, j);
+            for (int j = 0; j < testTimes; j++) {
+                intMap.addAndGet(j, j + 1);
             }
         }
 
-        for (int i = 1; i < 10240; i++) {
-            Assert.assertEquals(i * 2, intMap.get(i));
+        Assert.assertEquals(testTimes, intMap.size());
+
+        for (int i = 0; i < testTimes; i++) {
+            Assert.assertEquals((i + 1) * 2, intMap.get(i));
         }
+    }
+
+    @Test
+    public void testDecrease() {
+        final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
+        Assert.assertEquals(-1, intMap.addAndGet(0, -1));
+        Assert.assertEquals(-1, intMap.get(0));
+
+        Assert.assertEquals(-3, intMap.addAndGet(0, -2));
+        Assert.assertEquals(-3, intMap.get(0));
+
+        Assert.assertEquals(1, intMap.addAndGet(0, 4));
+        Assert.assertEquals(1, intMap.get(0));
     }
 
     @Test
@@ -155,7 +171,7 @@ public class ConcurrentIntCounterTest {
                     } catch (InterruptedException | BrokenBarrierException e) {
                         e.printStackTrace();
                     }
-                    Logger.info(" starting...");
+                    Logger.info("starting...");
 
                     try {
                         for (int k = 0; k < testTimes; k++) {
@@ -186,14 +202,12 @@ public class ConcurrentIntCounterTest {
         final boolean termination = executor.awaitTermination(1, SECONDS);
         Logger.info("termination=" + termination);
 
-//        Assert.assertEquals(integerMap.toString(), testTimes, integerMap.size());
-//        Assert.assertEquals(intMap.toString(), testTimes, intMap.size());
+        Assert.assertEquals(integerMap.toString(), testTimes, integerMap.size());
+        Assert.assertEquals(intMap.toString(), testTimes, intMap.size());
 
         for (Map.Entry<Integer, AtomicInteger> entry : integerMap.entrySet()) {
             final Integer key = entry.getKey();
-            final AtomicInteger value = entry.getValue();
-            final int expectedVal = value.intValue();
-//            Assert.assertEquals("integerMap " + key, threadCnt, expectedVal);
+            final int expectedVal = entry.getValue().intValue();
             Assert.assertEquals("intArray " + key + ", " + intArray, expectedVal, intArray.get(key));
             Assert.assertEquals("intMap " + key + ", " + intMap, expectedVal, intMap.get(key));
         }
