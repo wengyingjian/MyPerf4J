@@ -144,12 +144,23 @@ public final class ConcurrentIntCounter implements Serializable {
     }
 
     public int addAndGet(final int key, final int delta) {
-        Logger.info("addAndGet（" + key + ", " + delta + ")...");
+//        Logger.info("addAndGet（" + key + ", " + delta + ")...");
         if (delta == 0) {
             return get(key);
         }
 
-        final int[] array = getArray();
+        //TODO:LSK 得好好想想怎么样能更完备的进行 helpTransfer
+        final int[] array = this.array;
+        final int[] nextArray = this.nextArray;
+        final boolean rehashing = this.sizeCtl == SIZE_CTL_REHASHING;
+        final int result = addAndGet0(rehashing && nextArray != null ? nextArray : array, key, delta);
+        if (this.sizeCtl == SIZE_CTL_REHASHING) {
+            helpTransfer(this.array);
+        }
+        return result;
+    }
+
+    private int addAndGet0(final int[] array, final int key, final int delta) {
         final int mask = array.length - 1;
         final int startIdx = hashIdx(key, mask);
         int idx = startIdx;
@@ -165,29 +176,25 @@ public final class ConcurrentIntCounter implements Serializable {
                     if (tryAddLong(array, kOffset, key, delta)) {
                         return getValue(kv) + delta;
                     } else { //说明正在 rehash
-                        waitingTransfer(key, delta);
-                        return addAndGet(key, delta);
+                        helpTransfer(array);
+                        return addAndGet0(this.array, key, delta);
                     }
                 }
             } else if (getKey(kv) == key) { //increase
                 if (tryAddLong(array, kOffset, key, delta)) {
                     return getValue(kv) + delta;
                 } else { //说明正在 rehash
-                    waitingTransfer(key, delta);
-                    return addAndGet(key, delta);
+                    helpTransfer(array);
+                    return addAndGet0(this.array, key, delta);
                 }
             }
 
             if ((idx = probeNext(idx, mask)) == startIdx) {
                 Logger.warn("Unable to insert1, so try to growArray(" + key + ", " + delta + ")");
                 growArray(key, delta);
-                return addAndGet(key, delta);
+                return addAndGet0(this.array, key, delta);
             }
         }
-    }
-
-    private int[] getArray() {
-        return this.sizeCtl != SIZE_CTL_REHASHING ? this.array : this.nextArray;
     }
 
     private boolean tryAddLong(final int[] array, final long byteOffset, final int key, final int delta) {
@@ -204,25 +211,15 @@ public final class ConcurrentIntCounter implements Serializable {
         }
     }
 
-    private void waitingTransfer(final int key, final int delta) {
-        while (sizeCtl < 0) {
-            Logger.info("waiting, key=" + key + ", delta=" + delta);
-            synchronized (this) {
-                while (sizeCtl < 0) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } finally {
-                        Logger.info("wait finished! key=" + key + ", " + "delta=" + delta);
-                    }
-                }
-            }
+    private void helpTransfer(final int[] array) {
+        int[] nextArray;
+        if (this.sizeCtl == SIZE_CTL_REHASHING && (nextArray = this.nextArray) != null) {
+            transfer(array, nextArray);
         }
     }
 
     private void growSize(final int key, final int delta) {
-        Logger.info("growSize(): key=" + key + ", " + "delta=" + delta);
+//        Logger.info("growSize(): key=" + key + ", " + "delta=" + delta);
         if (SIZE_UPDATER.incrementAndGet(this) < maxSize) {
             return;
         }
@@ -237,37 +234,31 @@ public final class ConcurrentIntCounter implements Serializable {
         }
 
         final int newCapacity = length << 1;
-        Logger.info("trying to transfer, key=" + key + ", delta=" + delta + ", newCapacity=" + newCapacity);
+//        Logger.info("trying to transfer, key=" + key + ", delta=" + delta + ", newCapacity=" + newCapacity);
 
         int sc;
         while (true) {
             if ((sc = sizeCtl) < 0) {
-                Logger.info("begin yield, sc=" + sc + ", " + "newCapacity=" + newCapacity);
-                waitingTransfer(key, delta);
+//                Logger.info("begin yield, sc=" + sc + ", " + "newCapacity=" + newCapacity);
+                helpTransfer(this.array);
                 return;
-            } else if (this.array.length >= newCapacity) { //不应该拿 sc 和 newCapacity 做对比！！！
+            } else if (this.array.length >= newCapacity) {
                 Logger.info("sizeCtl=" + sc + ", array.length[" + array.length + "] >= newCapacity[" + newCapacity +
                         "], so break!");
                 return;
             } else if (unsafe.compareAndSwapInt(this, SIZE_CTL, sc, SIZE_CTL_RACING)) {
-                Logger.info("transferring, key=" + key + ", delta=" + delta + " sc=" + sc + ", newCapacity=" + newCapacity);
-                synchronized (this) {
-                    try {
-                        this.nextArray = new int[newCapacity];
-                        this.sizeCtl = SIZE_CTL_REHASHING;
-                        transfer(this.array, this.nextArray);
-//                        Logger.error("after transfer, key=" + key + ", " + "delta=" + delta + " sc=" + sc +
-//                                ", newCapacity=" + newCapacity + ", array=" + Arrays.toString(this.array) + ", " +
-//                                "nextArray=" + Arrays.toString(nextArray));
+//                Logger.info("transferring, key=" + key + ", delta=" + delta + " sc=" + sc + ", newCapacity=" +
+//                newCapacity);
+                try {
+                    this.nextArray = new int[newCapacity];
+                    this.sizeCtl = SIZE_CTL_REHASHING;
+                    transfer(this.array, this.nextArray);
 
-                        this.array = this.nextArray;
-                        this.maxSize = calcMaxSize(newCapacity >> 1);
-                    } finally {
-                        this.sizeCtl = sc;
-                        this.nextArray = null;
-                        notifyAll();
-                        Logger.info("transferred, key=" + key + ", " + "delta=" + delta);
-                    }
+                    this.array = this.nextArray;
+                    this.maxSize = calcMaxSize(newCapacity >> 1);
+                } finally {
+                    this.sizeCtl = sc;
+                    this.nextArray = null;
                 }
                 break;
             }
@@ -278,7 +269,7 @@ public final class ConcurrentIntCounter implements Serializable {
         final int fromMask = fromArray.length - 1;
         final int toMask = toArray.length - 1;
 
-        Logger.info("transfer(): begin rehash, fromArray=" + Arrays.toString(fromArray));
+//        Logger.info("transfer(): begin rehash, fromArray=" + Arrays.toString(fromArray));
         for (int k = 0; k < fromArray.length; k += 2) {
             final long offset = byteOffset(k, fromMask);
             final long kvLong = getAndReset(fromArray, offset);
@@ -294,12 +285,13 @@ public final class ConcurrentIntCounter implements Serializable {
             while (true) {
                 kOffset = byteOffset(idx, toMask);
                 if ((kv = getLongRaw(toArray, kOffset)) == 0L) { //try set
-                    Logger.info("transfer(): try CAS: key=" + key + ", value=" + value);
+//                    Logger.info("transfer(): try CAS: key=" + key + ", value=" + value);
                     if (unsafe.compareAndSwapLong(toArray, kOffset, 0L, kvLong)) {
-                        Logger.info("transfer(): try CAS SUCCESS");
+//                        Logger.info("transfer(): try CAS SUCCESS");
                         break;
                     } else if (getIntRaw(toArray, kOffset) == key) {
-                        Logger.info("transfer(): try CAS FAILURE but getIntRaw(toArray, kOffset)=" + getIntRaw(toArray, kOffset));
+//                        Logger.info("transfer(): try CAS FAILURE but getIntRaw(toArray, kOffset)=" + getIntRaw
+//                        (toArray, kOffset));
                         if (tryAddLong(toArray, kOffset, key, value)) {
                             SIZE_UPDATER.decrementAndGet(this);
                             break;
@@ -309,7 +301,7 @@ public final class ConcurrentIntCounter implements Serializable {
                         Logger.warn("transfer(): try CAS FAILURE and getIntRaw(toArray, kOffset)=" + getIntRaw(toArray, kOffset));
                     }
                 } else if (getKey(kv) == key) { //increase
-                    Logger.info("transfer(): tryAddLong: key=" + key + ", value=" + value);
+//                    Logger.info("transfer(): tryAddLong: key=" + key + ", value=" + value);
                     if (tryAddLong(toArray, kOffset, key, value)) {
                         SIZE_UPDATER.decrementAndGet(this);
                         break;
@@ -322,7 +314,7 @@ public final class ConcurrentIntCounter implements Serializable {
                 }
             }
         }
-        Logger.info("transfer(): rehashed！");
+//        Logger.info("transfer(): rehashed！");
     }
 
     private long getAndReset(final int[] array, final long offset) {

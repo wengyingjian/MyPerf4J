@@ -156,10 +156,12 @@ public class ConcurrentIntCounterTest {
 
     private static void testMultiThread0() throws InterruptedException, BrokenBarrierException {
         final int testTimes = ThreadLocalRandom.current().nextInt(1024);
+//        final int testTimes = 16;
         final ConcurrentIntCounter intMap = new ConcurrentIntCounter(1);
         final AtomicIntArray intArray = new AtomicIntArray(testTimes);
         final ConcurrentMap<Integer, AtomicInteger> integerMap = new ConcurrentHashMap<>(testTimes);
         final int threadCnt = Runtime.getRuntime().availableProcessors();
+//        final int threadCnt = 2;
         final ExecutorService executor = Executors.newFixedThreadPool(threadCnt);
         final CyclicBarrier barrier = new CyclicBarrier(threadCnt + 1);
         for (int i = 0; i < threadCnt; i++) {
@@ -172,7 +174,7 @@ public class ConcurrentIntCounterTest {
                     } catch (InterruptedException | BrokenBarrierException e) {
                         e.printStackTrace();
                     }
-                    Logger.info("starting...");
+//                    Logger.info("starting...");
 
                     try {
                         for (int k = 0; k < testTimes; k++) {
@@ -182,12 +184,12 @@ public class ConcurrentIntCounterTest {
                         }
                     } finally {
                         try {
-                            Logger.info("stopping...");
+//                            Logger.info("stopping...");
                             barrier.await();
                         } catch (InterruptedException | BrokenBarrierException e) {
                             e.printStackTrace();
-                        } finally {
-                            Logger.info("stopped.");
+//                        } finally {
+//                            Logger.info("stopped.");
                         }
                     }
                 }
@@ -195,7 +197,7 @@ public class ConcurrentIntCounterTest {
         }
         barrier.await();
         long start = System.nanoTime();
-        Logger.info("M starting...");
+        Logger.info("M starting, testTimes=" + testTimes + ", threadCnt=" + threadCnt);
         barrier.await();
         Logger.info("Cost " + (System.nanoTime() - start) / 1_000_000 + "ms");
 
@@ -212,7 +214,7 @@ public class ConcurrentIntCounterTest {
             Assert.assertEquals("intArray " + key + ", " + intArray, expectedVal, intArray.get(key));
             Assert.assertEquals("intMap " + key + ", " + intMap, expectedVal, intMap.get(key));
         }
-        Logger.info("Congratulation!");
+        Logger.info("Congratulation!\n");
         SECONDS.sleep(1);
     }
 
