@@ -1,13 +1,8 @@
 package cn.myperf4j.core;
 
+import cn.myperf4j.base.Scheduler;
 import cn.myperf4j.base.Version;
-import cn.myperf4j.base.config.FilterConfig;
-import cn.myperf4j.base.config.HttpServerConfig;
-import cn.myperf4j.base.config.LevelMappingFilter;
-import cn.myperf4j.base.config.MetricsConfig;
-import cn.myperf4j.base.config.ProfilingConfig;
-import cn.myperf4j.base.config.ProfilingFilter;
-import cn.myperf4j.base.config.RecorderConfig;
+import cn.myperf4j.base.config.*;
 import cn.myperf4j.base.constant.PropertyValues.Separator;
 import cn.myperf4j.base.http.HttpHeaders;
 import cn.myperf4j.base.http.HttpRequest;
@@ -15,19 +10,18 @@ import cn.myperf4j.base.http.HttpResponse;
 import cn.myperf4j.base.http.server.Dispatcher;
 import cn.myperf4j.base.http.server.SimpleHttpServer;
 import cn.myperf4j.base.metric.exporter.MethodMetricsExporter;
-import cn.myperf4j.base.util.concurrent.ExecutorManager;
 import cn.myperf4j.base.util.Logger;
-import cn.myperf4j.base.config.MyProperties;
 import cn.myperf4j.base.util.NumUtils;
 import cn.myperf4j.base.util.StrUtils;
+import cn.myperf4j.base.util.concurrent.ExecutorManager;
+import cn.myperf4j.core.prometheus.WebContainerExport;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
 import cn.myperf4j.core.scheduler.JvmMetricsScheduler;
-import cn.myperf4j.base.Scheduler;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+import io.prometheus.client.hotspot.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.List;
@@ -48,17 +42,10 @@ import static cn.myperf4j.base.constant.PropertyValues.Separator.ELE;
 import static cn.myperf4j.base.constant.PropertyValues.Separator.ELE_KV;
 import static cn.myperf4j.base.http.HttpRespStatus.NOT_FOUND;
 import static cn.myperf4j.base.http.HttpRespStatus.OK;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getBufferPoolMetricsExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getClassMetricsExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getCompilationExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getFileDescExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getGcMetricsExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getMemoryMetricsExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getMethodMetricsExporter;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getThreadMetricsExporter;
-import static cn.myperf4j.base.util.net.NetUtils.isPortAvailable;
+import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.*;
 import static cn.myperf4j.base.util.StrUtils.splitAsList;
 import static cn.myperf4j.base.util.SysProperties.LINE_SEPARATOR;
+import static cn.myperf4j.base.util.net.NetUtils.isPortAvailable;
 
 /**
  * Created by LinShunkang on 2018/4/11
@@ -159,10 +146,29 @@ public abstract class AbstractBootstrap {
             return false;
         }
 
+        if (!initPrometheus()) {
+            Logger.error("AbstractBootstrap initPrometheus() FAILURE!!!");
+            return false;
+        }
+
         if (!initOther()) {
             Logger.error("AbstractBootstrap initOther() FAILURE!!!");
             return false;
         }
+        return true;
+    }
+
+    public boolean initPrometheus() {
+        CollectorRegistry registry = CollectorRegistry.defaultRegistry;
+        (new StandardExports()).register(registry);
+        (new MemoryPoolsExports()).register(registry);
+        (new MemoryAllocationExports()).register(registry);
+        (new BufferPoolsExports()).register(registry);
+        (new GarbageCollectorExports()).register(registry);
+        (new ThreadExports()).register(registry);
+        (new ClassLoadingExports()).register(registry);
+        (new VersionInfoExports()).register(registry);
+        (new WebContainerExport()).register(registry);
         return true;
     }
 
@@ -464,12 +470,29 @@ public abstract class AbstractBootstrap {
                     case "/switch/debugMode":
                         Logger.setDebugEnable(request.getBoolParam("enable"));
                         break;
+                    case "/actuator/prometheus":
+                        Logger.info("get prometheus");
+                        return new HttpResponse(OK, new HttpHeaders(0), prometheus());
                     default:
                         return new HttpResponse(NOT_FOUND, new HttpHeaders(0), "");
                 }
                 return new HttpResponse(OK, new HttpHeaders(0), "Success");
             }
         };
+    }
+
+
+    public String prometheus() {
+        // 创建一个StringWriter来接收指标输出
+        Writer writer = new StringWriter();
+        try {
+            // 将指标输出到StringWriter中
+            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+            // 将StringWriter中的内容打印到控制台
+            return writer.toString();
+        } catch (IOException e) {
+            throw new RuntimeException("get prometheus failed", e);
+        }
     }
 
     public abstract boolean initOther();
