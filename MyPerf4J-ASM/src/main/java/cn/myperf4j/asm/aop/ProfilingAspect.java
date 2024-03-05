@@ -2,9 +2,10 @@ package cn.myperf4j.asm.aop;
 
 import cn.myperf4j.asm.ASMRecorderMaintainer;
 import cn.myperf4j.base.config.ProfilingParams;
-import cn.myperf4j.core.MethodTagMaintainer;
-import cn.myperf4j.core.recorder.Recorder;
 import cn.myperf4j.base.util.Logger;
+import cn.myperf4j.core.MethodTagMaintainer;
+import cn.myperf4j.core.prometheus.MethodObserver;
+import cn.myperf4j.core.recorder.Recorder;
 
 import java.lang.reflect.Method;
 
@@ -40,7 +41,9 @@ public final class ProfilingAspect {
                 return;
             }
 
-            recorder.recordTime(startNanos, System.nanoTime());
+            long endNanos = System.nanoTime();
+            recorder.recordTime(startNanos, endNanos);
+            MethodObserver.observe(methodTagId, startNanos, endNanos);
         } catch (Exception e) {
             Logger.error("ProfilingAspect.profiling(" + startNanos + ", " + methodTagId + ", "
                     + MethodTagMaintainer.getInstance().getMethodTag(methodTagId) + ")", e);

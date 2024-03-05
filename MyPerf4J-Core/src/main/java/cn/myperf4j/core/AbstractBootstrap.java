@@ -487,7 +487,7 @@ public abstract class AbstractBootstrap {
         Writer writer = new StringWriter();
         try {
             // 将指标输出到StringWriter中
-            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+            TextFormat.writeOpenMetrics100(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
             // 将StringWriter中的内容打印到控制台
             return writer.toString();
         } catch (IOException e) {
