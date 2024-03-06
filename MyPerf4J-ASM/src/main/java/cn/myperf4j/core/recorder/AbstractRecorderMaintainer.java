@@ -15,8 +15,6 @@ import static cn.myperf4j.core.MethodTagMaintainer.MAX_NUM;
  */
 public abstract class AbstractRecorderMaintainer {
 
-    private static final int MAX_DELAY_TASKS = 1024;
-
     protected List<Recorders> recordersList;
 
     private int curIndex;

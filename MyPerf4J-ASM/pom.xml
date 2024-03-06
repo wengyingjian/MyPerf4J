@@ -18,6 +18,23 @@
     </properties>
 
     <dependencies>
+        <!-- The client -->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_common</artifactId>
+        </dependency>
+        <!-- Hotspot JVM metrics-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_hotspot</artifactId>
+        </dependency>
+        <!-- Exposition HTTPServer-->
+        <!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver -->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_httpserver</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -29,10 +46,16 @@
             <artifactId>asm-commons</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>MyPerf4J</groupId>-->
+<!--            <artifactId>MyPerf4J-Core</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>MyPerf4J</groupId>
-            <artifactId>MyPerf4J-Core</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.6</version>
         </dependency>
     </dependencies>
 
