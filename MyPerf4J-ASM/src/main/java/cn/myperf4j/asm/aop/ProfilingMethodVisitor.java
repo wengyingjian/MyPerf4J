@@ -2,7 +2,6 @@ package cn.myperf4j.asm.aop;
 
 import cn.myperf4j.asm.ASMRecorderMaintainer;
 import cn.myperf4j.base.MethodTag;
-import cn.myperf4j.base.config.MetricsConfig;
 import cn.myperf4j.base.config.ProfilingConfig;
 import cn.myperf4j.base.config.RecorderConfig;
 import cn.myperf4j.core.MethodTagMaintainer;
@@ -22,8 +21,6 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
 
     private final AbstractRecorderMaintainer maintainer = ASMRecorderMaintainer.getInstance();
 
-    private final MetricsConfig metricsConf = ProfilingConfig.metricsConfig();
-
     private final RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
 
     private final String innerClassName;
@@ -36,30 +33,16 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
 
     private int startTimeIdentifier;
 
-    public ProfilingMethodVisitor(int access,
-                                  String name,
-                                  String desc,
-                                  MethodVisitor mv,
-                                  String innerClassName,
-                                  String fullClassName,
-                                  String simpleClassName,
-                                  String classLevel,
-                                  String humanMethodDesc) {
+    public ProfilingMethodVisitor(int access, String name, String desc, MethodVisitor mv, String innerClassName, String fullClassName, String simpleClassName, String classLevel, String humanMethodDesc) {
         super(ASM9, mv, access, name, desc);
         this.methodName = name;
-        this.methodTagId = methodTagMaintainer.addMethodTag(
-                getMethodTag(fullClassName, simpleClassName, classLevel, name, humanMethodDesc));
+        this.methodTagId = methodTagMaintainer.addMethodTag(getMethodTag(fullClassName, simpleClassName, classLevel, name, humanMethodDesc));
         this.innerClassName = innerClassName;
         this.simpleClassName = simpleClassName;
     }
 
-    private MethodTag getMethodTag(String fullClassName,
-                                   String simpleClassName,
-                                   String classLevel,
-                                   String methodName,
-                                   String humanMethodDesc) {
-        String methodParamDesc = metricsConf.showMethodParams() ? humanMethodDesc : "";
-        return MethodTag.getGeneralInstance(fullClassName, simpleClassName, classLevel, methodName, methodParamDesc);
+    private MethodTag getMethodTag(String fullClassName, String simpleClassName, String classLevel, String methodName, String humanMethodDesc) {
+        return MethodTag.getGeneralInstance(fullClassName, simpleClassName, classLevel, methodName, humanMethodDesc);
     }
 
     /**
@@ -89,7 +72,7 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
             return;
         }
 
-        if("com/ebaolife/bedrock/entity/QueryDslBaseDao".equals(innerClassName)){
+        if ("com/ebaolife/bedrock/entity/QueryDslBaseDao".equals(innerClassName)) {
             //注入开始时间
             mv.visitVarInsn(LLOAD, startTimeIdentifier);
 
@@ -101,7 +84,6 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
             mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "dbdslprof", "(JLjava/lang/Object;Ljava/lang/String;)V", false);
             return;
         }
-
 
 
         if ("execute".equals(methodName) && "com/xxl/job/core/handler/impl/MethodJobHandler".equals(innerClassName)) {

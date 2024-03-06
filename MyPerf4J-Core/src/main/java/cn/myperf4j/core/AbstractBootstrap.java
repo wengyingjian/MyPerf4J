@@ -25,7 +25,6 @@ import java.util.Set;
 import static cn.myperf4j.base.config.BasicConfig.loadBasicConfig;
 import static cn.myperf4j.base.config.FilterConfig.loadFilterConfig;
 import static cn.myperf4j.base.config.HttpServerConfig.loadHttpServerConfig;
-import static cn.myperf4j.base.config.InfluxDbConfig.loadInfluxDbConfig;
 import static cn.myperf4j.base.config.MetricsConfig.loadMetricsConfig;
 import static cn.myperf4j.base.config.RecorderConfig.loadRecorderConfig;
 import static cn.myperf4j.base.constant.PropertyKeys.Basic.PROPERTIES_FILE_DIR;
@@ -170,7 +169,6 @@ public abstract class AbstractBootstrap {
         try {
             ProfilingConfig.basicConfig(loadBasicConfig());
             ProfilingConfig.metricsConfig(loadMetricsConfig());
-            ProfilingConfig.influxDBConfig(loadInfluxDbConfig());
             ProfilingConfig.filterConfig(loadFilterConfig());
             ProfilingConfig.recorderConfig(loadRecorderConfig());
             ProfilingConfig.httpServerConfig(loadHttpServerConfig());

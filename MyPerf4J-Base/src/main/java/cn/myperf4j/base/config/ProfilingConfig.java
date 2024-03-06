@@ -13,8 +13,6 @@ public final class ProfilingConfig {
 
     private static FilterConfig FILTER_CONFIG;
 
-    private static InfluxDbConfig INFLUX_DB_CONFIG;
-
     private static RecorderConfig RECORDER_CONFIG;
 
     private ProfilingConfig() {
@@ -35,14 +33,6 @@ public final class ProfilingConfig {
 
     public static void httpServerConfig(HttpServerConfig httpServerConfig) {
         HTTP_SERVER_CONFIG = httpServerConfig;
-    }
-
-    public static InfluxDbConfig influxDBConfig() {
-        return INFLUX_DB_CONFIG;
-    }
-
-    public static void influxDBConfig(InfluxDbConfig influxDBConfig) {
-        ProfilingConfig.INFLUX_DB_CONFIG = influxDBConfig;
     }
 
     public static MetricsConfig metricsConfig() {
