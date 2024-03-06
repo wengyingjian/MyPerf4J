@@ -9,7 +9,10 @@ import javax.management.JMException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 public class WebContainerExport extends Collector {
@@ -72,20 +75,17 @@ public class WebContainerExport extends Collector {
         long[] ids = threadBean.getAllThreadIds();
         List<ThreadInfo> threadInfos = Arrays.asList(threadBean.getThreadInfo(ids));
 
-        threadInfos.sort(new Comparator<ThreadInfo>() {
-            @Override
-            public int compare(ThreadInfo o1, ThreadInfo o2) {
-                int state = o1.getThreadState().compareTo(o2.getThreadState());
-                if (state == 0) {
-                    return o1.getThreadName().compareTo(o2.getThreadName());
-                }
-                return state;
+        threadInfos.sort((o1, o2) -> {
+            int state = o1.getThreadState().compareTo(o2.getThreadState());
+            if (state == 0) {
+                return o1.getThreadName().compareTo(o2.getThreadName());
             }
+            return state;
         });
 
-        threadInfos.forEach(threadInfo -> {
-            System.out.println("thread:" + threadInfo.getThreadState().name() + ":" + threadInfo.getThreadName());
-        });
+//        threadInfos.forEach(threadInfo -> {
+//            System.out.println("thread:" + threadInfo.getThreadState().name() + ":" + threadInfo.getThreadName());
+//        });
         return threadInfos;
     }
 }

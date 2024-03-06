@@ -142,8 +142,6 @@ public class Config {
 
         private String mode;
 
-        private int backupCount;
-
         private int timingArrSize;
 
         private int timingMapSize;
@@ -155,7 +153,6 @@ public class Config {
         public static RecorderConfig loadRecorderConfig() {
             final RecorderConfig config = new RecorderConfig();
             config.setMode(getStr(MODE, MODE_ACCURATE));
-            config.setBackupCount(getInt(BACKUP_COUNT, 1));
             config.setTimingArrSize(getInt(SIZE_TIMING_ARR, 1024));
             config.setTimingMapSize(getInt(SIZE_TIMING_MAP, 32));
             config.setCommonProfilingParams(ProfilingParams.of(config.getTimingArrSize(), config.getTimingMapSize()));
