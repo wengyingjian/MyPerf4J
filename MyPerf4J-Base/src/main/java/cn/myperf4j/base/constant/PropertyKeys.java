@@ -30,58 +30,10 @@ public interface PropertyKeys {
     }
 
     interface Metrics {
-
-        ConfigKey EXPORTER = ConfigKey.of("metrics.exporter", "MetricsProcessorType");
-
-        ConfigKey TIME_SLICE_METHOD = ConfigKey.of("metrics.time_slice.method", "MethodMilliTimeSlice");
-
-        ConfigKey TIME_SLICE_JVM = ConfigKey.of("metrics.time_slice.jvm", "JvmMilliTimeSlice");
-
-        ConfigKey METHOD_SHOW_PARAMS = ConfigKey.of("metrics.method.show_params", "ShowMethodParams");
-
         ConfigKey CLASS_LEVEL_MAPPINGS = ConfigKey.of("metrics.method.class_level_mappings", "ClassLevelMapping");
 
-        ConfigKey LOG_METHOD = ConfigKey.of("metrics.log.method", "MethodMetricsFile");
-
-        ConfigKey LOG_CLASS_LOADING = ConfigKey.of("metrics.log.class_loading", "ClassMetricsFile");
-
-        ConfigKey LOG_GC = ConfigKey.of("metrics.log.gc", "GCMetricsFile");
-
-        ConfigKey LOG_MEMORY = ConfigKey.of("metrics.log.memory", "MemMetricsFile");
-
-        ConfigKey LOG_BUFF_POOL = ConfigKey.of("metrics.log.buff_pool", "BufPoolMetricsFile");
-
-        ConfigKey LOG_THREAD = ConfigKey.of("metrics.log.thread", "ThreadMetricsFile");
-
-        ConfigKey LOG_FILE_DESC = ConfigKey.of("metrics.log.file_desc", "FileDescMetricsFile");
-
-        ConfigKey LOG_COMPILATION = ConfigKey.of("metrics.log.compilation", "CompilationMetricsFile");
-
-        ConfigKey LOG_ROLLING_TIME_UNIT = ConfigKey.of("metrics.log.rolling.time_unit", "LogRollingTimeUnit");
-
-        ConfigKey LOG_RESERVE_COUNT = ConfigKey.of("metrics.log.reserve.count", "LogReserveCount");
     }
 
-    interface InfluxDB {
-
-        ConfigKey VERSION = ConfigKey.of("influxdb.version", "influxdb.version");
-
-        ConfigKey HOST = ConfigKey.of("influxdb.host", "influxdb.host");
-
-        ConfigKey PORT = ConfigKey.of("influxdb.port", "influxdb.port");
-
-        ConfigKey ORG_NAME = ConfigKey.of("influxdb.orgName", "influxdb.orgName");
-
-        ConfigKey DATABASE = ConfigKey.of("influxdb.database", "influxdb.database");
-
-        ConfigKey USERNAME = ConfigKey.of("influxdb.username", "influxdb.username");
-
-        ConfigKey PASSWORD = ConfigKey.of("influxdb.password", "influxdb.password");
-
-        ConfigKey CONN_TIMEOUT = ConfigKey.of("influxdb.conn_timeout", "influxdb.conn_timeout");
-
-        ConfigKey READ_TIMEOUT = ConfigKey.of("influxdb.read_timeout", "influxdb.read_timeout");
-    }
 
     interface Filter {
 

@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import static cn.myperf4j.base.config.BasicConfig.loadBasicConfig;
-import static cn.myperf4j.base.config.FilterConfig.loadFilterConfig;
-import static cn.myperf4j.base.config.HttpServerConfig.loadHttpServerConfig;
-import static cn.myperf4j.base.config.MetricsConfig.loadMetricsConfig;
-import static cn.myperf4j.base.config.RecorderConfig.loadRecorderConfig;
+import static cn.myperf4j.base.config.Config.BasicConfig.loadBasicConfig;
+import static cn.myperf4j.base.config.Config.FilterConfig.loadFilterConfig;
+import static cn.myperf4j.base.config.Config.HttpServerConfig.loadHttpServerConfig;
+import static cn.myperf4j.base.config.Config.MetricsConfig.loadMetricsConfig;
+import static cn.myperf4j.base.config.Config.RecorderConfig.loadRecorderConfig;
 import static cn.myperf4j.base.constant.PropertyKeys.Basic.PROPERTIES_FILE_DIR;
 import static cn.myperf4j.base.constant.PropertyKeys.PRO_FILE_NAME;
 import static cn.myperf4j.base.constant.PropertyValues.DEFAULT_PRO_FILE;
@@ -181,7 +181,7 @@ public abstract class AbstractBootstrap {
 
     private boolean initLogger() {
         try {
-            Logger.setDebugEnable(ProfilingConfig.basicConfig().debug());
+            Logger.setDebugEnable(ProfilingConfig.basicConfig().isDebug());
             return true;
         } catch (Exception e) {
             Logger.error("AbstractBootstrap.initLogger()", e);
@@ -191,14 +191,14 @@ public abstract class AbstractBootstrap {
 
     private boolean initPackageFilter() {
         try {
-            final FilterConfig filterConfig = ProfilingConfig.filterConfig();
-            final String includePackages = filterConfig.includePackages();
+            final Config.FilterConfig filterConfig = ProfilingConfig.filterConfig();
+            final String includePackages = filterConfig.getIncludePackages();
             final List<String> includeList = splitAsList(includePackages, ELE);
             for (int i = 0; i < includeList.size(); i++) {
                 ProfilingFilter.addIncludePackage(includeList.get(i));
             }
 
-            final String excludePackages = filterConfig.excludePackages();
+            final String excludePackages = filterConfig.getExcludePackages();
             final List<String> excludeList = splitAsList(excludePackages, ELE);
             for (int i = 0; i < excludeList.size(); i++) {
                 ProfilingFilter.addExcludePackage(excludeList.get(i));
@@ -212,8 +212,8 @@ public abstract class AbstractBootstrap {
 
     private boolean initClassLoaderFilter() {
         try {
-            final FilterConfig filterConfig = ProfilingConfig.filterConfig();
-            final String excludeClassLoaders = filterConfig.excludeClassLoaders();
+            final Config.FilterConfig filterConfig = ProfilingConfig.filterConfig();
+            final String excludeClassLoaders = filterConfig.getExcludeClassLoaders();
             final List<String> excludeList = splitAsList(excludeClassLoaders, ELE);
             for (int i = 0; i < excludeList.size(); i++) {
                 ProfilingFilter.addExcludeClassLoader(excludeList.get(i));
@@ -227,8 +227,8 @@ public abstract class AbstractBootstrap {
 
     private boolean initMethodFilter() {
         try {
-            final FilterConfig filterConfig = ProfilingConfig.filterConfig();
-            final String excludeMethods = filterConfig.excludeMethods();
+            final Config.FilterConfig filterConfig = ProfilingConfig.filterConfig();
+            final String excludeMethods = filterConfig.getExcludeMethods();
             final List<String> excludeList = splitAsList(excludeMethods, ELE);
             for (int i = 0; i < excludeList.size(); i++) {
                 ProfilingFilter.addExcludeMethods(excludeList.get(i));
@@ -243,8 +243,8 @@ public abstract class AbstractBootstrap {
     //MethodLevelMapping=Controller:[*Controller];Api:[*Api,*ApiImpl];
     private boolean initClassLevelMapping() {
         try {
-            final MetricsConfig metricsConfig = ProfilingConfig.metricsConfig();
-            final String levelMappings = metricsConfig.classLevelMapping();
+            final Config.MetricsConfig metricsConfig = ProfilingConfig.metricsConfig();
+            final String levelMappings = metricsConfig.getClassLevelMapping();
             if (StrUtils.isBlank(levelMappings)) {
                 Logger.info("ClassLevelMapping is blank, so use default mappings.");
                 return true;
@@ -276,7 +276,7 @@ public abstract class AbstractBootstrap {
 
     private boolean initProfilingParams() {
         try {
-            final RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
+            final Config.RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
             if (recorderConf.accurateMode()) {
                 addProfilingParams(recorderConf, ProfilingConfig.basicConfig().sysProfilingParamsFile());
             }
@@ -287,7 +287,7 @@ public abstract class AbstractBootstrap {
         return false;
     }
 
-    private void addProfilingParams(RecorderConfig recorderConf, String filePath) {
+    private void addProfilingParams(Config.RecorderConfig recorderConf, String filePath) {
         final File sysFile = new File(filePath);
         if (sysFile.exists() && sysFile.isFile()) {
             Logger.info("Loading " + sysFile.getName() + " to init profiling params.");
@@ -295,7 +295,7 @@ public abstract class AbstractBootstrap {
         }
     }
 
-    private void addProfilingParams0(RecorderConfig recorderConf, String profilingParamFile) {
+    private void addProfilingParams0(Config.RecorderConfig recorderConf, String profilingParamFile) {
         try (InputStream in = new FileInputStream(profilingParamFile)) {
             Properties properties = new Properties();
             properties.load(in);
@@ -330,7 +330,7 @@ public abstract class AbstractBootstrap {
 
     private boolean initHttpServer() {
         try {
-            final HttpServerConfig config = ProfilingConfig.httpServerConfig();
+            final Config.HttpServerConfig config = ProfilingConfig.httpServerConfig();
             final SimpleHttpServer server = new SimpleHttpServer.Builder().port(choseHttpServerPort(config)).minWorkers(config.getMinWorkers()).maxWorkers(config.getMaxWorkers()).acceptCnt(config.getAcceptCount()).dispatcher(getHttpServerDispatch()).build();
             server.startAsync();
             return true;
@@ -340,7 +340,7 @@ public abstract class AbstractBootstrap {
         return false;
     }
 
-    private int choseHttpServerPort(final HttpServerConfig config) {
+    private int choseHttpServerPort(final Config.HttpServerConfig config) {
         final int preferencePort = config.getPreferencePort();
         if (isPortAvailable(preferencePort)) {
             Logger.info("Use " + preferencePort + " as HttpServer port.");
@@ -381,7 +381,7 @@ public abstract class AbstractBootstrap {
         Writer writer = new StringWriter();
         try {
             // 将指标输出到StringWriter中
-            ApplicationTextFormat.writeOpenMetrics100(writer, CollectorRegistry.defaultRegistry.metricFamilySamples(), ProfilingConfig.basicConfig().appName());
+            ApplicationTextFormat.writeOpenMetrics100(writer, CollectorRegistry.defaultRegistry.metricFamilySamples(), ProfilingConfig.basicConfig().getAppName());
             // 将StringWriter中的内容打印到控制台
             return writer.toString();
         } catch (IOException e) {

@@ -5,57 +5,57 @@ package cn.myperf4j.base.config;
  */
 public final class ProfilingConfig {
 
-    private static BasicConfig BASIC_CONFIG;
+    private static Config.BasicConfig BASIC_CONFIG;
 
-    private static HttpServerConfig HTTP_SERVER_CONFIG;
+    private static Config.HttpServerConfig HTTP_SERVER_CONFIG;
 
-    private static MetricsConfig METRICS_CONFIG;
+    private static Config.MetricsConfig METRICS_CONFIG;
 
-    private static FilterConfig FILTER_CONFIG;
+    private static Config.FilterConfig FILTER_CONFIG;
 
-    private static RecorderConfig RECORDER_CONFIG;
+    private static Config.RecorderConfig RECORDER_CONFIG;
 
     private ProfilingConfig() {
         //empty
     }
 
-    public static BasicConfig basicConfig() {
+    public static Config.BasicConfig basicConfig() {
         return BASIC_CONFIG;
     }
 
-    public static void basicConfig(BasicConfig basicConfig) {
+    public static void basicConfig(Config.BasicConfig basicConfig) {
         BASIC_CONFIG = basicConfig;
     }
 
-    public static HttpServerConfig httpServerConfig() {
+    public static Config.HttpServerConfig httpServerConfig() {
         return HTTP_SERVER_CONFIG;
     }
 
-    public static void httpServerConfig(HttpServerConfig httpServerConfig) {
+    public static void httpServerConfig(Config.HttpServerConfig httpServerConfig) {
         HTTP_SERVER_CONFIG = httpServerConfig;
     }
 
-    public static MetricsConfig metricsConfig() {
+    public static Config.MetricsConfig metricsConfig() {
         return METRICS_CONFIG;
     }
 
-    public static void metricsConfig(MetricsConfig metricsConfig) {
+    public static void metricsConfig(Config.MetricsConfig metricsConfig) {
         ProfilingConfig.METRICS_CONFIG = metricsConfig;
     }
 
-    public static FilterConfig filterConfig() {
+    public static Config.FilterConfig filterConfig() {
         return FILTER_CONFIG;
     }
 
-    public static void filterConfig(FilterConfig filterConfig) {
+    public static void filterConfig(Config.FilterConfig filterConfig) {
         ProfilingConfig.FILTER_CONFIG = filterConfig;
     }
 
-    public static RecorderConfig recorderConfig() {
+    public static Config.RecorderConfig recorderConfig() {
         return RECORDER_CONFIG;
     }
 
-    public static void recorderConfig(RecorderConfig recorderConfig) {
+    public static void recorderConfig(Config.RecorderConfig recorderConfig) {
         RECORDER_CONFIG = recorderConfig;
     }
 }

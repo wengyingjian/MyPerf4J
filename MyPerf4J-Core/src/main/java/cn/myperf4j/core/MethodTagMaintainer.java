@@ -85,8 +85,4 @@ public final class MethodTagMaintainer extends AbstractMethodTagMaintainer {
         return null;
     }
 
-    @Override
-    public int getMethodTagCount() {
-        return index.get();
-    }
 }

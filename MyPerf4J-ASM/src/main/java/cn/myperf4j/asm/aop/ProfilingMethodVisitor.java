@@ -2,8 +2,8 @@ package cn.myperf4j.asm.aop;
 
 import cn.myperf4j.asm.ASMRecorderMaintainer;
 import cn.myperf4j.base.MethodTag;
+import cn.myperf4j.base.config.Config;
 import cn.myperf4j.base.config.ProfilingConfig;
-import cn.myperf4j.base.config.RecorderConfig;
 import cn.myperf4j.core.MethodTagMaintainer;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
 import org.objectweb.asm.MethodVisitor;
@@ -21,7 +21,7 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
 
     private final AbstractRecorderMaintainer maintainer = ASMRecorderMaintainer.getInstance();
 
-    private final RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
+    private final Config.RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
 
     private final String innerClassName;
 
