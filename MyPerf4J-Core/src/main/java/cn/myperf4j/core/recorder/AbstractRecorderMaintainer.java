@@ -1,7 +1,6 @@
 package cn.myperf4j.core.recorder;
 
 import cn.myperf4j.base.config.ProfilingParams;
-import cn.myperf4j.base.metric.exporter.MethodMetricsExporter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,7 @@ public abstract class AbstractRecorderMaintainer {
 
     private boolean accurateMode;
 
-    public boolean initial(MethodMetricsExporter processor, boolean accurateMode, int bakRecordersCnt) {
+    public boolean initial(boolean accurateMode, int bakRecordersCnt) {
         this.accurateMode = accurateMode;
         bakRecordersCnt = getFitBakRecordersCnt(bakRecordersCnt);
 

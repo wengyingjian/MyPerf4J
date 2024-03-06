@@ -8,7 +8,6 @@ import cn.myperf4j.base.http.HttpRequest;
 import cn.myperf4j.base.http.HttpResponse;
 import cn.myperf4j.base.http.server.Dispatcher;
 import cn.myperf4j.base.http.server.SimpleHttpServer;
-import cn.myperf4j.base.metric.exporter.MethodMetricsExporter;
 import cn.myperf4j.base.util.Logger;
 import cn.myperf4j.base.util.NumUtils;
 import cn.myperf4j.base.util.StrUtils;
@@ -36,7 +35,6 @@ import static cn.myperf4j.base.constant.PropertyValues.Separator.ELE;
 import static cn.myperf4j.base.constant.PropertyValues.Separator.ELE_KV;
 import static cn.myperf4j.base.http.HttpRespStatus.NOT_FOUND;
 import static cn.myperf4j.base.http.HttpRespStatus.OK;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getMethodMetricsExporter;
 import static cn.myperf4j.base.util.StrUtils.splitAsList;
 import static cn.myperf4j.base.util.SysProperties.LINE_SEPARATOR;
 import static cn.myperf4j.base.util.net.NetUtils.isPortAvailable;
@@ -47,8 +45,6 @@ import static cn.myperf4j.base.util.net.NetUtils.isPortAvailable;
 public abstract class AbstractBootstrap {
 
     private volatile boolean initStatus;
-
-    protected MethodMetricsExporter methodMetricsExporter;
 
     protected AbstractRecorderMaintainer maintainer;
 
@@ -107,11 +103,6 @@ public abstract class AbstractBootstrap {
 
         if (!initClassLevelMapping()) {
             Logger.error("AbstractBootstrap initClassLevelMapping() FAILURE!!!");
-            return false;
-        }
-
-        if (!initMethodMetricsExporter()) {
-            Logger.error("AbstractBootstrap initMethodMetricsExporter() FAILURE!!!");
             return false;
         }
 
@@ -285,17 +276,6 @@ public abstract class AbstractBootstrap {
         return splitAsList(expStr, Separator.ARR_ELE);
     }
 
-    private boolean initMethodMetricsExporter() {
-        try {
-            final String exporter = ProfilingConfig.metricsConfig().metricsExporter();
-            methodMetricsExporter = getMethodMetricsExporter(exporter);
-            return true;
-        } catch (Exception e) {
-            Logger.error("AbstractBootstrap.initPerfStatsProcessor()", e);
-        }
-        return false;
-    }
-
     private boolean initProfilingParams() {
         try {
             final RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
@@ -353,13 +333,7 @@ public abstract class AbstractBootstrap {
     private boolean initHttpServer() {
         try {
             final HttpServerConfig config = ProfilingConfig.httpServerConfig();
-            final SimpleHttpServer server = new SimpleHttpServer.Builder()
-                    .port(choseHttpServerPort(config))
-                    .minWorkers(config.getMinWorkers())
-                    .maxWorkers(config.getMaxWorkers())
-                    .acceptCnt(config.getAcceptCount())
-                    .dispatcher(getHttpServerDispatch())
-                    .build();
+            final SimpleHttpServer server = new SimpleHttpServer.Builder().port(choseHttpServerPort(config)).minWorkers(config.getMinWorkers()).maxWorkers(config.getMaxWorkers()).acceptCnt(config.getAcceptCount()).dispatcher(getHttpServerDispatch()).build();
             server.startAsync();
             return true;
         } catch (Exception e) {
@@ -420,12 +394,6 @@ public abstract class AbstractBootstrap {
     public abstract boolean initOther();
 
     private void printBannerText() {
-        Logger.info(LINE_SEPARATOR +
-                "    __  ___      ____            ______ __      __" + LINE_SEPARATOR +
-                "   /  |/  /_  __/ __ \\___  _____/ __/ // /     / /" + LINE_SEPARATOR +
-                "  / /|_/ / / / / /_/ / _ \\/ ___/ /_/ // /___  / / " + LINE_SEPARATOR +
-                " / /  / / /_/ / ____/  __/ /  / __/__  __/ /_/ /  " + LINE_SEPARATOR +
-                "/_/  /_/\\__, /_/    \\___/_/  /_/    /_/  \\____/   " + LINE_SEPARATOR +
-                "       /____/                                     v" + Version.getVersion() + LINE_SEPARATOR);
+        Logger.info(LINE_SEPARATOR + "    __  ___      ____            ______ __      __" + LINE_SEPARATOR + "   /  |/  /_  __/ __ \\___  _____/ __/ // /     / /" + LINE_SEPARATOR + "  / /|_/ / / / / /_/ / _ \\/ ___/ /_/ // /___  / / " + LINE_SEPARATOR + " / /  / / /_/ / ____/  __/ /  / __/__  __/ /_/ /  " + LINE_SEPARATOR + "/_/  /_/\\__, /_/    \\___/_/  /_/    /_/  \\____/   " + LINE_SEPARATOR + "       /____/                                     v" + Version.getVersion() + LINE_SEPARATOR);
     }
 }
