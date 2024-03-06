@@ -15,10 +15,10 @@ import cn.myperf4j.base.util.NumUtils;
 import cn.myperf4j.base.util.StrUtils;
 import cn.myperf4j.base.util.concurrent.ExecutorManager;
 import cn.myperf4j.core.prometheus.WebContainerExport;
+import cn.myperf4j.core.prometheus.format.ApplicationTextFormat;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
 import cn.myperf4j.core.scheduler.JvmMetricsScheduler;
 import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.common.TextFormat;
 import io.prometheus.client.hotspot.*;
 
 import java.io.*;
@@ -487,7 +487,7 @@ public abstract class AbstractBootstrap {
         Writer writer = new StringWriter();
         try {
             // 将指标输出到StringWriter中
-            TextFormat.writeOpenMetrics100(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+            ApplicationTextFormat.writeOpenMetrics100(writer, CollectorRegistry.defaultRegistry.metricFamilySamples(), ProfilingConfig.basicConfig().appName());
             // 将StringWriter中的内容打印到控制台
             return writer.toString();
         } catch (IOException e) {

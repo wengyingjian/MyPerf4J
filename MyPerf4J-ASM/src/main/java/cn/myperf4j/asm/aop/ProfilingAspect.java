@@ -8,6 +8,9 @@ import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.core.recorder.Recorder;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
+
+import static cn.myperf4j.core.prometheus.MethodObserver.*;
 
 /**
  * Created by LinShunkang on 2018/4/15
@@ -22,6 +25,55 @@ public final class ProfilingAspect {
 
     private ProfilingAspect() {
         //empty
+    }
+
+    public static final String ENDPOINTS_CLASSIFIER = "org/springframework/web/servlet/mvc/method/AbstractHandlerMethodAdapter#handle";
+    public static final String RPC_CLASSIFIER = "feign/AsyncResponseHandler#handleResponse";
+
+
+    public static void dbdslprof(long startNanos, Object thisObj, String methodName) {
+        String uri = thisObj.getClass().getSimpleName() + '#' + methodName;
+        long endNanos = System.nanoTime();
+        MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
+    }
+
+
+    public static void dbprof(long startNanos, Object fields, Object[] args) {
+        Class clazz = (Class) fields;
+        Method method = (Method) args[1];
+
+        String className = method.getDeclaringClass().getSimpleName();
+        String methodName = method.getName();
+        String target = clazz.getSimpleName();
+        String uri = Objects.equals(className, target) ?
+                String.format("%s#%s", className, methodName)
+                : String.format("%s#%s(%s)", className, methodName, target);
+
+        long endNanos = System.nanoTime();
+        MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
+    }
+
+    public static void jobprof(long startNanos, Object args) {
+        Method method = ((Method) args);
+        String uri = method.getDeclaringClass().getSimpleName() + "#" + method.getName();
+
+        long endNanos = System.nanoTime();
+        MethodObserver.observe(JOB_METRIC, uri, startNanos, endNanos);
+    }
+
+    public static void executeWithArguments(long startNanos, String method, Object[] args) {
+        if (ENDPOINTS_CLASSIFIER.equals(method)) {
+            String uri = String.valueOf(args[2]);
+            uri = uri.substring(uri.lastIndexOf(".") + 1);
+            long endNanos = System.nanoTime();
+            MethodObserver.observe(ENDPOINTS_METRIC, uri, startNanos, endNanos);
+        }
+
+        if (RPC_CLASSIFIER.equals(method)) {
+            String uri = String.valueOf(args[1]);
+            long cost = (long) args[4];
+            MethodObserver.observe(RPC_METRIC, uri, cost);
+        }
     }
 
     public static void profiling(final long startNanos, final int methodTagId) {

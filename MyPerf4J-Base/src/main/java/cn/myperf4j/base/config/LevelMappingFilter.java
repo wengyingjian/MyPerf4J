@@ -47,7 +47,7 @@ public final class LevelMappingFilter {
         LEVEL_EXPS_MAP.put(API, Arrays.asList("*Api", "*ApiImpl"));
         LEVEL_EXPS_MAP.put(SERVICE, Arrays.asList("*Service", "*ServiceImpl"));
         LEVEL_EXPS_MAP.put(CACHE, Arrays.asList("*Cache", "*CacheImpl"));
-        LEVEL_EXPS_MAP.put(DAO, Collections.singletonList("*DAO"));
+        LEVEL_EXPS_MAP.put(DAO,  Arrays.asList("*DAO", "*Dao","*Repository","*RepositoryImpl"));
         LEVEL_EXPS_MAP.put(UTILS, Collections.singletonList("*Utils"));
     }
 

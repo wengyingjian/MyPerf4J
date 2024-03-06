@@ -4,11 +4,7 @@ import cn.myperf4j.base.util.StrUtils;
 
 import static cn.myperf4j.base.config.MyProperties.getBoolean;
 import static cn.myperf4j.base.config.MyProperties.getStr;
-import static cn.myperf4j.base.constant.PropertyKeys.Filter.CLASS_LOADERS_EXCLUDE;
-import static cn.myperf4j.base.constant.PropertyKeys.Filter.METHODS_EXCLUDE;
-import static cn.myperf4j.base.constant.PropertyKeys.Filter.METHODS_EXCLUDE_PRIVATE;
-import static cn.myperf4j.base.constant.PropertyKeys.Filter.PACKAGES_EXCLUDE;
-import static cn.myperf4j.base.constant.PropertyKeys.Filter.PACKAGES_INCLUDE;
+import static cn.myperf4j.base.constant.PropertyKeys.Filter.*;
 
 /**
  * Created by LinShunkang on 2020/05/24

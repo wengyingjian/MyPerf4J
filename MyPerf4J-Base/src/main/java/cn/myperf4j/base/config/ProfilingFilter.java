@@ -61,6 +61,25 @@ public final class ProfilingFilter {
         includePackagePrefix.add("com/alipay/sofa/rpc/proxy/jdk/JDKInvocationHandler"); //SOFA jdk-proxy
         includePackagePrefix.add("com/weibo/api/motan/proxy/RefererInvocationHandler"); //Motan
 
+        includePackageExp.add("org/springframework/web/servlet/mvc/method/AbstractHandlerMethodAdapter"); //springmvc
+        includePackageExp.add("feign/AsyncResponseHandler"); //feign
+        includePackageExp.add("com/xxl/job/core/handler/impl/MethodJobHandler"); //xxl-job
+        includePackageExp.add("org/redisson/Redisson"); //redisson
+        includePackageExp.add("org/redisson/RedissonBucket"); //redisson
+        includePackageExp.add("org/redisson/RedissonLock"); //redisson
+        includePackageExp.add("org/springframework/data/redis/core/RedisTemplate"); //redisTemplate
+        includePackageExp.add("org/springframework/data/redis/core/DefaultValueOperations"); //redisTemplate
+        includePackageExp.add("org/springframework/data/redis/core/DefaultHashOperations"); //redisTemplate
+        includePackageExp.add("org/springframework/data/redis/core/DefaultListOperations"); //redisTemplate
+        includePackageExp.add("org/springframework/data/redis/core/DefaultSetOperations"); //redisTemplate
+        includePackageExp.add("org/springframework/data/redis/core/DefaultZSetOperations"); //redisTemplate
+        includePackageExp.add("com/baomidou/mybatisplus/core/override/MybatisMapperProxy"); //mybatis plus
+//        includePackageExp.add("*Dao"); //querydsl
+//        includePackageExp.add("*DAO"); //querydsl
+//        includePackageExp.add("*Repository"); //querydsl
+//        includePackageExp.add("*RepositoryImpl"); //querydsl
+//        includePackageExp.add("*Mapper"); //querydsl
+
         //默认不注入的method
         excludeMethods.add("main");
         excludeMethods.add("premain");
@@ -74,6 +93,23 @@ public final class ProfilingFilter {
         excludeMethods.add("wait"); //java.lang.Object
         excludeMethods.add("finalize"); //java.lang.Object
         excludeMethods.add("afterPropertiesSet"); //spring
+
+        excludeMethods.add("AbstractHandlerMethodAdapter.supports"); //springmvc
+        excludeMethods.add("AbstractHandlerMethodAdapter.getLastModified"); //springmvc
+        excludeMethods.add("AsyncResponseHandler.isVoidType"); //feign
+        excludeMethods.add("AsyncResponseHandler.decode"); //feign
+        excludeMethods.add("Redisson.enableRedissonReferenceSupport"); //redisson
+        excludeMethods.add("Redisson.create"); //redisson
+        excludeMethods.add("Redisson.getBucket"); //redisson
+        excludeMethods.add("RedissonObject.get(RFuture)"); //redisson
+        excludeMethods.add("RedissonObject.encode"); //redisson
+        excludeMethods.add("RedisTemplate.setBeanClassLoader"); //redisTemplate
+        excludeMethods.add("RedisTemplate.preProcessConnection"); //redisTemplate
+        excludeMethods.add("RedisTemplate.postProcessResult"); //redisTemplate
+        excludeMethods.add("RedisTemplate.execute"); //redisTemplate
+        excludeMethods.add("MethodJobHandler.init"); //xxljob
+        excludeMethods.add("QueryDslBaseDao.rectifyExpressions"); //dsl
+
     }
 
     private ProfilingFilter() {
@@ -216,5 +252,17 @@ public final class ProfilingFilter {
      */
     public static boolean isNotNeedInjectClassLoader(String classLoader) {
         return excludeClassLoader.contains(classLoader);
+    }
+
+
+    /**
+     * 是否是需要监控的类
+     */
+    public static boolean isNeedMetric(String innerClassName) {
+        if (innerClassName == null) {
+            return false;
+        }
+
+        return isMatch(innerClassName, includePackagePrefix, includePackageExp);
     }
 }
