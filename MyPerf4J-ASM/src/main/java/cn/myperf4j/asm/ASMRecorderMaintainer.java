@@ -1,8 +1,8 @@
 package cn.myperf4j.asm;
 
+import cn.myperf4j.base.config.ProfilingParams;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
 import cn.myperf4j.core.recorder.Recorders;
-import cn.myperf4j.base.config.ProfilingParams;
 
 /**
  * Created by LinShunkang on 2018/4/26
@@ -15,10 +15,6 @@ public class ASMRecorderMaintainer extends AbstractRecorderMaintainer {
         return instance;
     }
 
-    @Override
-    public boolean initOther() {
-        return true;
-    }
 
     @Override
     public void addRecorder(int methodTagId, ProfilingParams params) {
@@ -28,4 +24,5 @@ public class ASMRecorderMaintainer extends AbstractRecorderMaintainer {
                     createRecorder(methodTagId, params.getMostTimeThreshold(), params.getOutThresholdCount()));
         }
     }
+
 }

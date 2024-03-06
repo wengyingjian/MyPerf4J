@@ -1,6 +1,5 @@
 package cn.myperf4j.core;
 
-import cn.myperf4j.base.Scheduler;
 import cn.myperf4j.base.Version;
 import cn.myperf4j.base.config.*;
 import cn.myperf4j.base.constant.PropertyValues.Separator;
@@ -13,21 +12,16 @@ import cn.myperf4j.base.metric.exporter.MethodMetricsExporter;
 import cn.myperf4j.base.util.Logger;
 import cn.myperf4j.base.util.NumUtils;
 import cn.myperf4j.base.util.StrUtils;
-import cn.myperf4j.base.util.concurrent.ExecutorManager;
 import cn.myperf4j.core.prometheus.WebContainerExport;
 import cn.myperf4j.core.prometheus.format.ApplicationTextFormat;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
-import cn.myperf4j.core.scheduler.JvmMetricsScheduler;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.hotspot.*;
 
 import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static cn.myperf4j.base.config.BasicConfig.loadBasicConfig;
 import static cn.myperf4j.base.config.FilterConfig.loadFilterConfig;
@@ -42,7 +36,7 @@ import static cn.myperf4j.base.constant.PropertyValues.Separator.ELE;
 import static cn.myperf4j.base.constant.PropertyValues.Separator.ELE_KV;
 import static cn.myperf4j.base.http.HttpRespStatus.NOT_FOUND;
 import static cn.myperf4j.base.http.HttpRespStatus.OK;
-import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.*;
+import static cn.myperf4j.base.metric.exporter.MetricsExporterFactory.getMethodMetricsExporter;
 import static cn.myperf4j.base.util.StrUtils.splitAsList;
 import static cn.myperf4j.base.util.SysProperties.LINE_SEPARATOR;
 import static cn.myperf4j.base.util.net.NetUtils.isPortAvailable;
@@ -128,16 +122,6 @@ public abstract class AbstractBootstrap {
 
         if (!initRecorderMaintainer()) {
             Logger.error("AbstractBootstrap initRecorderMaintainer() FAILURE!!!");
-            return false;
-        }
-
-        if (!initShutDownHook()) {
-            Logger.error("AbstractBootstrap initShutDownHook() FAILURE!!!");
-            return false;
-        }
-
-        if (!initScheduler()) {
-            Logger.error("AbstractBootstrap initScheduler() FAILURE!!!");
             return false;
         }
 
@@ -365,68 +349,6 @@ public abstract class AbstractBootstrap {
 
     public abstract AbstractRecorderMaintainer doInitRecorderMaintainer();
 
-    private boolean initShutDownHook() {
-        try {
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Logger.info("ENTER ShutdownHook...");
-                    try {
-                        ExecutorManager.stopAll(6, TimeUnit.SECONDS);
-                    } finally {
-                        Logger.info("EXIT ShutdownHook...");
-                    }
-                }
-            }));
-            return true;
-        } catch (Exception e) {
-            Logger.error("AbstractBootstrap.initShutDownHook()", e);
-        }
-        return false;
-    }
-
-    private boolean initScheduler() {
-        try {
-            final MetricsConfig config = ProfilingConfig.metricsConfig();
-            LightWeightScheduler.dispatchScheduleTask(maintainer, config.methodMilliTimeSlice());
-            LightWeightScheduler.dispatchScheduleTask(buildJvmMetricsScheduler(), config.jvmMilliTimeSlice());
-            LightWeightScheduler.dispatchScheduleTask(buildSysGenProfilingScheduler(), 60 * 1000); //1min
-            return true;
-        } catch (Exception e) {
-            Logger.error("AbstractBootstrap.initScheduler()", e);
-        }
-        return false;
-    }
-
-    private Scheduler buildJvmMetricsScheduler() {
-        final String exporter = ProfilingConfig.metricsConfig().metricsExporter();
-        return new JvmMetricsScheduler(
-                getClassMetricsExporter(exporter),
-                getGcMetricsExporter(exporter),
-                getMemoryMetricsExporter(exporter),
-                getBufferPoolMetricsExporter(exporter),
-                getThreadMetricsExporter(exporter),
-                getCompilationExporter(exporter),
-                getFileDescExporter(exporter)
-        );
-    }
-
-    private Scheduler buildSysGenProfilingScheduler() {
-        return new Scheduler() {
-            @Override
-            public void run(long lastTimeSliceStartTime, long millTimeSlice) {
-                RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-                if (bean.getUptime() >= 60 * 60 * 1000) { //60min
-                    MethodMetricsHistogram.buildSysGenProfilingFile();
-                }
-            }
-
-            @Override
-            public String name() {
-                return "ProfilingFileGenerator";
-            }
-        };
-    }
 
     private boolean initHttpServer() {
         try {
