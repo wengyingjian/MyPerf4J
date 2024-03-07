@@ -4,7 +4,6 @@ import cn.myperf4j.plugin.impl.EndpointsSpringMvcInjectPlugin;
 import cn.myperf4j.plugin.impl.JobXxlPlugin;
 import cn.myperf4j.plugin.impl.RpcFeignPlugin;
 import cn.myperf4j.premain.aop.ProfilingMethodVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
@@ -31,43 +30,43 @@ public class PluginAdapter {
      * @return
      * @see ProfilingMethodVisitor
      */
-    public static boolean onMethodExitInject(AdviceAdapter adapter, MethodVisitor mv, int startTimeIdentifier, String innerClassName, String methodName) {
+    public static boolean onMethodExitInject(AdviceAdapter adapter, int startTimeIdentifier, String innerClassName, String methodName) {
         //字节码类描述符，用于匹配插件
         String classifier = innerClassName + "#" + methodName;
 
         for (InjectPlugin plugin : PLUGIN_LIST) {
             if (plugin.matches(classifier)) {
                 //第一个参数：固定：开始时间
-                mv.visitVarInsn(Opcodes.LLOAD, startTimeIdentifier);
+                adapter.visitVarInsn(Opcodes.LLOAD, startTimeIdentifier);
 
                 //第二个参数：固定：classifier
-                mv.visitLdcInsn(classifier);
+                adapter.visitLdcInsn(classifier);
 
                 //第三个参数：固定：当前对象
-                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                adapter.visitVarInsn(Opcodes.ALOAD, 0);
 
                 //第四个参数：自定义：可以注入需要的属性
-                boolean fields = plugin.injectFields(mv);
+                boolean fields = plugin.injectFields(adapter);
                 if (!fields) {
-                    mv.visitInsn(Opcodes.ACONST_NULL);
+                    adapter.visitInsn(Opcodes.ACONST_NULL);
                 }
 
                 //第五个参数：自定义：可以注入需要的方法
 
                 // 创建一个 Object 数组来存储参数
                 Type[] argumentTypes = adapter.getArgumentTypes();
-                mv.visitLdcInsn(argumentTypes.length + 1);
-                mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+                adapter.visitLdcInsn(argumentTypes.length + 1);
+                adapter.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
 
                 for (int i = 0; i < argumentTypes.length; i++) {
-                    mv.visitInsn(Opcodes.DUP);
-                    mv.visitLdcInsn(i);
+                    adapter.visitInsn(Opcodes.DUP);
+                    adapter.visitLdcInsn(i);
                     // 将参数加载到数组中
                     adapter.loadArg(i);
                     adapter.box(argumentTypes[i]);
-                    mv.visitInsn(Opcodes.AASTORE);
+                    adapter.visitInsn(Opcodes.AASTORE);
                 }
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, getOwner(), getMethodName(), getMethodDescriptor(), false);
+                adapter.visitMethodInsn(Opcodes.INVOKESTATIC, getOwner(), getMethodName(), getMethodDescriptor(), false);
                 return true;
             }
         }
