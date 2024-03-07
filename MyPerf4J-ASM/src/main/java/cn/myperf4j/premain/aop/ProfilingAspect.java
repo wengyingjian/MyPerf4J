@@ -1,11 +1,12 @@
 package cn.myperf4j.premain.aop;
 
-import cn.myperf4j.premain.ASMRecorderMaintainer;
 import cn.myperf4j.common.config.ProfilingParams;
 import cn.myperf4j.common.util.Logger;
+import cn.myperf4j.common.util.StrUtils;
 import cn.myperf4j.core.MethodTagMaintainer;
 import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.core.recorder.Recorder;
+import cn.myperf4j.premain.ASMRecorderMaintainer;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -61,10 +62,16 @@ public final class ProfilingAspect {
         MethodObserver.observe(JOB_METRIC, uri, startNanos, endNanos);
     }
 
+    private static String getEndpointsUri(Object springHandlerMethod) {
+        //spring 1x *com.ebaolife.leopard.codeflow.group.interfaces.TcfGroupController.findById(java.lang.Long)
+        //spring 2x *org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#errorHtml(HttpServletRequest, HttpServletResponse)
+        String uri = String.valueOf(springHandlerMethod);
+        return StrUtils.formatMethod(uri);
+    }
+
     public static void executeWithArguments(long startNanos, String method, Object[] args) {
         if (ENDPOINTS_CLASSIFIER.equals(method)) {
-            String uri = String.valueOf(args[2]);
-            uri = uri.substring(uri.lastIndexOf(".") + 1);
+            String uri = getEndpointsUri(args[2]);
             long endNanos = System.nanoTime();
             MethodObserver.observe(ENDPOINTS_METRIC, uri, startNanos, endNanos);
         }

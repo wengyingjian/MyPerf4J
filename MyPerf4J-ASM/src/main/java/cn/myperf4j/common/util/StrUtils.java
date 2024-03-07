@@ -139,4 +139,44 @@ public final class StrUtils {
         // set of characters (both ASCII and full-width latin letters).
         return HEX2B[c];
     }
+
+    public static String replaceLast(String input, String regex, String replacement) {
+        int lastIndexOf = input.lastIndexOf(regex);
+        if (lastIndexOf == -1) {
+            return input;
+        }
+        return input.substring(0, lastIndexOf) + replacement + input.substring(lastIndexOf + 1);
+    }
+
+    /**
+     * 格式化方法输出
+     *
+     * @return TcfGroupController#findById
+     */
+    public static String formatMethod(String input) {
+        //spring 1x *com.ebaolife.leopard.codeflow.group.interfaces.TcfGroupController.findById(java.lang.Long)
+        //spring 2x *org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#errorHtml(HttpServletRequest, HttpServletResponse)
+        //去括号
+        int index;
+        if ((index = input.indexOf('(')) != -1) {
+            input = input.substring(0, index);
+        }
+        //'.'转'#'
+        if (!input.contains("#")) {
+            input = StrUtils.replaceLast(input, ".", "#");
+        }
+        //截取.之后的
+        if ((index = input.lastIndexOf('.')) != -1) {
+            input = input.substring(index + 1);
+        }
+        return input;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(formatMethod(" *com.ebaolife.leopard.codeflow.group.interfaces.TcfGroupController.findById(java.lang.Long)"));
+        System.out.println(formatMethod(" * *org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#errorHtml(HttpServletRequest, HttpServletResponse)"));
+        System.out.println(formatMethod(" *RedisTemplate.opsForValue()"));
+        System.out.println(formatMethod(" 123."));
+    }
+
 }
