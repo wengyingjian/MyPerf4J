@@ -1,8 +1,7 @@
 package cn.myperf4j.plugin;
 
-import cn.myperf4j.plugin.impl.EndpointsSpringMvcInjectPlugin;
-import cn.myperf4j.plugin.impl.JobXxlPlugin;
-import cn.myperf4j.plugin.impl.RpcFeignPlugin;
+import cn.myperf4j.common.util.Logger;
+import cn.myperf4j.plugin.impl.*;
 import cn.myperf4j.premain.aop.ProfilingMethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -20,7 +19,9 @@ public class PluginAdapter {
     static {
         PLUGIN_LIST.add(new EndpointsSpringMvcInjectPlugin());
         PLUGIN_LIST.add(new RpcFeignPlugin());
-        PLUGIN_LIST.add(new JobXxlPlugin());
+        PLUGIN_LIST.add(new JobXxl2Plugin());
+        PLUGIN_LIST.add(new DBMybtisPlusPlugin());
+        PLUGIN_LIST.add(new DbQueryDslPlugin());
     }
 
     /**
@@ -46,26 +47,16 @@ public class PluginAdapter {
                 adapter.visitVarInsn(Opcodes.ALOAD, 0);
 
                 //第四个参数：自定义：可以注入需要的属性
-                boolean fields = plugin.injectFields(adapter);
-                if (!fields) {
+                if (!plugin.injectFields(adapter)) {
                     adapter.visitInsn(Opcodes.ACONST_NULL);
                 }
 
                 //第五个参数：自定义：可以注入需要的方法
-
-                // 创建一个 Object 数组来存储参数
-                Type[] argumentTypes = adapter.getArgumentTypes();
-                adapter.visitLdcInsn(argumentTypes.length + 1);
-                adapter.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
-
-                for (int i = 0; i < argumentTypes.length; i++) {
-                    adapter.visitInsn(Opcodes.DUP);
-                    adapter.visitLdcInsn(i);
-                    // 将参数加载到数组中
-                    adapter.loadArg(i);
-                    adapter.box(argumentTypes[i]);
-                    adapter.visitInsn(Opcodes.AASTORE);
+                if (!plugin.injectParams(adapter)) {
+                    adapter.visitInsn(Opcodes.ACONST_NULL);
                 }
+
+                //调用统计方法
                 adapter.visitMethodInsn(Opcodes.INVOKESTATIC, getOwner(), getMethodName(), getMethodDescriptor(), false);
                 return true;
             }
@@ -83,12 +74,16 @@ public class PluginAdapter {
      * @param fields     方法执行当前对象的属性，需要自己指定传入
      * @param params     方法的参数
      */
-    public static void onMethodExitRecord(long startNanos, String classifier, Object targetObj, Object fields, Object[] params) {
-        for (InjectPlugin plugin : PLUGIN_LIST) {
-            if (plugin.matches(classifier)) {
-                plugin.onMethodExitRecord(startNanos, targetObj, fields, params);
-                return;
+    public static void onMethodExitRecord(long startNanos, String classifier, Object targetObj, Object[] fields, Object[] params) {
+        try {
+            for (InjectPlugin plugin : PLUGIN_LIST) {
+                if (plugin.matches(classifier)) {
+                    plugin.onMethodExitRecord(startNanos, classifier, targetObj, fields, params);
+                    return;
+                }
             }
+        } catch (Exception e) {
+            Logger.error("onMethodExitRecord failed", e);
         }
     }
 

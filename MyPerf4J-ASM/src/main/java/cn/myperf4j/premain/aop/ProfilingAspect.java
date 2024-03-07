@@ -32,30 +32,6 @@ public final class ProfilingAspect {
     public static final String RPC_CLASSIFIER = "feign/AsyncResponseHandler#handleResponse";
 
 
-    public static void dbdslprof(long startNanos, Object thisObj, String methodName) {
-        String uri = thisObj.getClass().getSimpleName() + '#' + methodName;
-        uri = StrUtils.formatMethod(uri);
-        long endNanos = System.nanoTime();
-        MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
-    }
-
-
-    public static void dbprof(long startNanos, Object fields, Object[] args) {
-        Class clazz = (Class) fields;
-        Method method = (Method) args[1];
-
-        String className = method.getDeclaringClass().getSimpleName();
-        String methodName = method.getName();
-        String target = clazz.getSimpleName();
-        String uri = Objects.equals(className, target) ?
-                String.format("%s#%s", className, methodName)
-                : String.format("%s#%s(%s)", className, methodName, target);
-
-        long endNanos = System.nanoTime();
-        MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
-    }
-
-
     public static void profiling(final long startNanos, final int methodTagId) {
         try {
             if (!running) {

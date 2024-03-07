@@ -9,3 +9,5 @@ target
 *.versionsBackup
 .DS_Store
 */.DS_Store
+*.log
+xxl-job-logs/
