@@ -1,8 +1,8 @@
 package cn.myperf4j.core;
 
-import cn.myperf4j.base.MethodTag;
-import cn.myperf4j.base.util.Logger;
-import cn.myperf4j.base.util.TypeDescUtils;
+import cn.myperf4j.common.MethodTag;
+import cn.myperf4j.common.util.Logger;
+import cn.myperf4j.common.util.TypeDescUtils;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;

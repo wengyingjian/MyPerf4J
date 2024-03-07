@@ -1,7 +1,7 @@
 package cn.myperf4j.core.recorder;
 
-import cn.myperf4j.base.buffer.LongBuf;
-import cn.myperf4j.base.util.concurrent.AtomicIntArray;
+import cn.myperf4j.common.buffer.LongBuf;
+import cn.myperf4j.common.util.concurrent.AtomicIntArray;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

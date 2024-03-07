@@ -74,7 +74,7 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
-                            <Premain-Class>cn.myperf4j.asm.PreMain</Premain-Class>
+                            <Premain-Class>cn.myperf4j.premain.PreMain</Premain-Class>
                             <Specification-Version>${project.version}</Specification-Version>
                             <Implementation-Version>${project.version}</Implementation-Version>
                         </manifestEntries>

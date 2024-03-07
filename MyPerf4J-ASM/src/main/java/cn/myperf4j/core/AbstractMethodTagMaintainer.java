@@ -1,6 +1,6 @@
 package cn.myperf4j.core;
 
-import cn.myperf4j.base.MethodTag;
+import cn.myperf4j.common.MethodTag;
 
 import java.lang.reflect.Method;
 

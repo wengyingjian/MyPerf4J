@@ -1,7 +1,7 @@
 package cn.myperf4j.core.prometheus;
 
-import cn.myperf4j.base.MethodTag;
-import cn.myperf4j.base.constant.ClassLevels;
+import cn.myperf4j.common.MethodTag;
+import cn.myperf4j.common.constant.ClassLevels;
 import cn.myperf4j.core.MethodTagMaintainer;
 import io.prometheus.client.Summary;
 
@@ -47,7 +47,7 @@ public class MethodObserver {
         MethodTag methodTag = methodTagMaintainer.getMethodTag(methodTagId);
 
         Summary metric = OTHER_METRIC;
-        if (methodTag.getSimpleDesc().contains("Redisson")) {
+        if (methodTag.getSimpleDesc().contains("Redisson") || methodTag.getSimpleDesc().contains("Redis")) {
             metric = REDIS_METRIC;
         } else if (ClassLevels.DAO.equals(methodTag.getLevel())) {
             metric = DB_METRIC;

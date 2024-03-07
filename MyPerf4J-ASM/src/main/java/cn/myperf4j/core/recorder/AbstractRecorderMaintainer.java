@@ -1,6 +1,6 @@
 package cn.myperf4j.core.recorder;
 
-import cn.myperf4j.base.config.ProfilingParams;
+import cn.myperf4j.common.config.ProfilingParams;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
