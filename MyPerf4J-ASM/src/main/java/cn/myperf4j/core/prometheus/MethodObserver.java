@@ -2,6 +2,7 @@ package cn.myperf4j.core.prometheus;
 
 import cn.myperf4j.common.MethodTag;
 import cn.myperf4j.common.constant.ClassLevels;
+import cn.myperf4j.common.util.StrUtils;
 import cn.myperf4j.core.MethodTagMaintainer;
 import io.prometheus.client.Summary;
 
@@ -46,13 +47,19 @@ public class MethodObserver {
         MethodTagMaintainer methodTagMaintainer = MethodTagMaintainer.getInstance();
         MethodTag methodTag = methodTagMaintainer.getMethodTag(methodTagId);
 
+        String uri = methodTag.getSimpleDesc();
         Summary metric = OTHER_METRIC;
-        if (methodTag.getSimpleDesc().contains("Redisson") || methodTag.getSimpleDesc().contains("Redis")) {
+        if (uri.contains("Redisson") || uri.contains("Redis")) {
+            //RedissonBucket.get()
+            //RedissonBucket.setAsync(Object)
             metric = REDIS_METRIC;
         } else if (ClassLevels.DAO.equals(methodTag.getLevel())) {
+            //BaseMapper#selectList(InsAgentMapper)
+            //InsAgentMapper#testSelectXml
             metric = DB_METRIC;
         }
-        observe(metric, methodTag.getSimpleDesc(), startNanoTime, endNanoTime);
+        uri = StrUtils.formatMethod(uri);
+        observe(metric, uri, startNanoTime, endNanoTime);
     }
 
     public static void observe(Summary metric, String method, long startNanoTime, long endNanoTime) {

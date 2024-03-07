@@ -1,11 +1,12 @@
 package cn.myperf4j.premain.aop;
 
-import cn.myperf4j.premain.ASMRecorderMaintainer;
 import cn.myperf4j.common.MethodTag;
 import cn.myperf4j.common.config.Config;
 import cn.myperf4j.common.config.ProfilingConfig;
 import cn.myperf4j.core.MethodTagMaintainer;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
+import cn.myperf4j.plugin.PluginAdapter;
+import cn.myperf4j.premain.ASMRecorderMaintainer;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
@@ -64,13 +65,10 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
 
     @Override
     protected void onMethodExit(int opcode) {
-        if (targetProfiling(ProfilingAspect.ENDPOINTS_CLASSIFIER)) {
+        if (PluginAdapter.onMethodExitInject(this, mv, startTimeIdentifier, innerClassName, methodName)) {
             return;
         }
 
-        if (targetProfiling(ProfilingAspect.RPC_CLASSIFIER)) {
-            return;
-        }
 
         if ("com/ebaolife/bedrock/entity/QueryDslBaseDao".equals(innerClassName)) {
             //注入开始时间
@@ -86,54 +84,11 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
         }
 
 
-        if ("execute".equals(methodName) && "com/xxl/job/core/handler/impl/MethodJobHandler".equals(innerClassName)) {
-            //注入开始时间
-            mv.visitVarInsn(LLOAD, startTimeIdentifier);
-
-            //注入methopd属性
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitFieldInsn(GETFIELD, "com/xxl/job/core/handler/impl/MethodJobHandler", "method", "Ljava/lang/reflect/Method;"); // 获取 field target 对象
-            mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "jobprof", "(JLjava/lang/Object;)V", false);
-            return;
-        }
-
-
         if (profiling() && ((IRETURN <= opcode && opcode <= RETURN) || opcode == ATHROW)) {
             mv.visitVarInsn(LLOAD, startTimeIdentifier);
             mv.visitLdcInsn(methodTagId);
             mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "profiling", "(JI)V", false);
         }
-    }
-
-    private boolean targetProfiling(String targetClassifier) {
-        String classifier = innerClassName + "#" + methodName;
-        if (!targetClassifier.equals(classifier)) {
-            return false;
-        }
-
-        //第一个参数：开始时间
-        mv.visitVarInsn(LLOAD, startTimeIdentifier);
-
-        //第二个参数：方法名称
-        mv.visitLdcInsn(classifier);
-
-        //第三个参数：方法原参数
-        // 创建一个 Object 数组来存储参数
-        Type[] argumentTypes = getArgumentTypes();
-        mv.visitLdcInsn(argumentTypes.length + 1);
-        mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
-
-        for (int i = 0; i < argumentTypes.length; i++) {
-            mv.visitInsn(DUP);
-            mv.visitLdcInsn(i);
-            // 将参数加载到数组中
-            loadArg(i);
-            box(argumentTypes[i]);
-            mv.visitInsn(AASTORE);
-        }
-
-        mv.visitMethodInsn(INVOKESTATIC, "cn/myperf4j/premain/aop/ProfilingAspect", "executeWithArguments", "(JLjava/lang/String;[Ljava/lang/Object;)V", false);
-        return true;
     }
 
 

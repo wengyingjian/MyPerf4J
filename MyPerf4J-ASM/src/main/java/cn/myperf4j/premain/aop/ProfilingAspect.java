@@ -34,6 +34,7 @@ public final class ProfilingAspect {
 
     public static void dbdslprof(long startNanos, Object thisObj, String methodName) {
         String uri = thisObj.getClass().getSimpleName() + '#' + methodName;
+        uri = StrUtils.formatMethod(uri);
         long endNanos = System.nanoTime();
         MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
     }
@@ -54,34 +55,6 @@ public final class ProfilingAspect {
         MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
     }
 
-    public static void jobprof(long startNanos, Object args) {
-        Method method = ((Method) args);
-        String uri = method.getDeclaringClass().getSimpleName() + "#" + method.getName();
-
-        long endNanos = System.nanoTime();
-        MethodObserver.observe(JOB_METRIC, uri, startNanos, endNanos);
-    }
-
-    private static String getEndpointsUri(Object springHandlerMethod) {
-        //spring 1x *com.ebaolife.leopard.codeflow.group.interfaces.TcfGroupController.findById(java.lang.Long)
-        //spring 2x *org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#errorHtml(HttpServletRequest, HttpServletResponse)
-        String uri = String.valueOf(springHandlerMethod);
-        return StrUtils.formatMethod(uri);
-    }
-
-    public static void executeWithArguments(long startNanos, String method, Object[] args) {
-        if (ENDPOINTS_CLASSIFIER.equals(method)) {
-            String uri = getEndpointsUri(args[2]);
-            long endNanos = System.nanoTime();
-            MethodObserver.observe(ENDPOINTS_METRIC, uri, startNanos, endNanos);
-        }
-
-        if (RPC_CLASSIFIER.equals(method)) {
-            String uri = String.valueOf(args[1]);
-            long cost = (long) args[4];
-            MethodObserver.observe(RPC_METRIC, uri, cost);
-        }
-    }
 
     public static void profiling(final long startNanos, final int methodTagId) {
         try {
