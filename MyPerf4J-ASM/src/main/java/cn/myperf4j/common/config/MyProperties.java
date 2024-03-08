@@ -12,6 +12,7 @@ import static cn.myperf4j.common.util.StrUtils.trimToEmpty;
 public final class MyProperties {
 
     private static Properties properties;
+    private static Properties apolloProperties;
 
     private MyProperties() {
         //empty
@@ -23,6 +24,15 @@ public final class MyProperties {
         }
 
         properties = prop;
+        return true;
+    }
+
+    public static synchronized boolean initialApollo(Properties prop) {
+        if (apolloProperties != null || prop == null) {
+            return false;
+        }
+
+        apolloProperties = prop;
         return true;
     }
 
@@ -41,10 +51,21 @@ public final class MyProperties {
     private static String getStr0(String key) {
         checkState();
 
+        //环境变量优先级最高
         final String value = System.getProperty(key);
         if (value != null) {
             return value;
         }
+
+        //apollo优先级第二
+        if (apolloProperties != null) {
+            final String apolloValue = apolloProperties.getProperty(key);
+            if (apolloValue != null) {
+                return apolloValue;
+            }
+        }
+
+        //配置文件优先级最低
         return properties.getProperty(key);
     }
 

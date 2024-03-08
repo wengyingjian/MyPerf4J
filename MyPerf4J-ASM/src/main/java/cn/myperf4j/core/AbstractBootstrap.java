@@ -1,6 +1,8 @@
 package cn.myperf4j.core;
 
+import cn.hutool.json.JSONUtil;
 import cn.myperf4j.common.Version;
+import cn.myperf4j.common.apollo.ApolloClient;
 import cn.myperf4j.common.config.*;
 import cn.myperf4j.common.constant.PropertyValues.Separator;
 import cn.myperf4j.common.http.HttpHeaders;
@@ -18,9 +20,7 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.hotspot.*;
 
 import java.io.*;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import static cn.myperf4j.common.config.Config.BasicConfig.loadBasicConfig;
 import static cn.myperf4j.common.config.Config.FilterConfig.loadFilterConfig;
@@ -72,6 +72,16 @@ public abstract class AbstractBootstrap {
     private boolean doInitial() {
         if (!initProperties()) {
             Logger.error("AbstractBootstrap initProperties() FAILURE!!!");
+            return false;
+        }
+
+        if (!initBasicConfig()) {
+            Logger.error("AbstractBootstrap initProfilingConfig() FAILURE!!!");
+            return false;
+        }
+
+        if (!initApolloProperties()) {
+            Logger.error("AbstractBootstrap initApolloProperties() FAILURE!!!");
             return false;
         }
 
@@ -132,6 +142,44 @@ public abstract class AbstractBootstrap {
         return true;
     }
 
+    private boolean initBasicConfig() {
+        try {
+            ProfilingConfig.basicConfig(loadBasicConfig());
+            return true;
+        } catch (Exception e) {
+            Logger.error("AbstractBootstrap.initProfilingConfig()", e);
+        }
+        return false;
+    }
+
+    private boolean initApolloProperties() {
+        try {
+            //从apollo加载
+            String json = ApolloClient.fetchApolloConfig(ProfilingConfig.basicConfig().getApolloConfigServiceUrl());
+            Map<String, String> map = JSONUtil.toBean(json, Map.class);
+
+            String appName = ProfilingConfig.basicConfig().getAppName();
+            Properties properties = new Properties();
+
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                String key = entry.getKey();
+                int prefixIndex = key.indexOf(".");
+                if (prefixIndex == -1) {
+                    continue;
+                }
+                String keyPrefix = key.substring(0, prefixIndex);
+                if (Objects.equals(appName, keyPrefix)) {
+                    key = key.substring(prefixIndex + 1);
+                    properties.setProperty(key, entry.getValue());
+                }
+            }
+            return MyProperties.initialApollo(properties);
+        } catch (Exception e) {
+            Logger.error("AbstractBootstrap.initApolloProperties()", e);
+        }
+        return false;
+    }
+
     public boolean initPrometheus() {
         CollectorRegistry registry = CollectorRegistry.defaultRegistry;
         (new StandardExports()).register(registry);
@@ -167,7 +215,6 @@ public abstract class AbstractBootstrap {
 
     private boolean initProfilingConfig() {
         try {
-            ProfilingConfig.basicConfig(loadBasicConfig());
             ProfilingConfig.metricsConfig(loadMetricsConfig());
             ProfilingConfig.filterConfig(loadFilterConfig());
             ProfilingConfig.recorderConfig(loadRecorderConfig());
@@ -290,7 +337,7 @@ public abstract class AbstractBootstrap {
     private void addProfilingParams(Config.RecorderConfig recorderConf, String filePath) {
         final File sysFile = new File(filePath);
         if (sysFile.exists() && sysFile.isFile()) {
-            Logger.info("Loading " + sysFile.getName() + " to init profiling params.");
+            Logger.info("Loading " + sysFile.getAbsolutePath() + " to init profiling params.");
             addProfilingParams0(recorderConf, filePath);
         }
     }

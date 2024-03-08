@@ -29,6 +29,8 @@ public class Config {
 
         private boolean debug;
 
+        private String apolloConfigServiceUrl;
+
         public static BasicConfig loadBasicConfig() {
             String appName = getStr(APP_NAME);
             if (isBlank(appName)) {
@@ -39,6 +41,7 @@ public class Config {
             config.setAppName(appName);
             config.setDebug(getBoolean(DEBUG, false));
             config.setConfigFileDir(getStr(PROPERTIES_FILE_DIR));
+            config.setApolloConfigServiceUrl(getStr(APOLLO_CONFIG_SERVICE_URL));
             return config;
         }
 

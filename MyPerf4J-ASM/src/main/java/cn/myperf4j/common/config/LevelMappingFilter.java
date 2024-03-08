@@ -1,28 +1,14 @@
 package cn.myperf4j.common.config;
 
-import cn.myperf4j.common.util.collections.MapUtils;
 import cn.myperf4j.common.util.StrMatchUtils;
+import cn.myperf4j.common.util.collections.MapUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static cn.myperf4j.common.constant.ClassLevels.API;
-import static cn.myperf4j.common.constant.ClassLevels.CACHE;
-import static cn.myperf4j.common.constant.ClassLevels.CONSUMER;
-import static cn.myperf4j.common.constant.ClassLevels.CONTROLLER;
-import static cn.myperf4j.common.constant.ClassLevels.DAO;
-import static cn.myperf4j.common.constant.ClassLevels.DISPATCHER;
-import static cn.myperf4j.common.constant.ClassLevels.FILTER;
-import static cn.myperf4j.common.constant.ClassLevels.HANDLER;
-import static cn.myperf4j.common.constant.ClassLevels.INTERCEPTOR;
-import static cn.myperf4j.common.constant.ClassLevels.LISTENER;
-import static cn.myperf4j.common.constant.ClassLevels.OTHERS;
-import static cn.myperf4j.common.constant.ClassLevels.PROCESSOR;
-import static cn.myperf4j.common.constant.ClassLevels.PRODUCER;
-import static cn.myperf4j.common.constant.ClassLevels.SERVICE;
-import static cn.myperf4j.common.constant.ClassLevels.UTILS;
+import static cn.myperf4j.common.constant.ClassLevels.*;
 
 /**
  * Created by LinShunkang on 2019/05/04
@@ -47,7 +33,7 @@ public final class LevelMappingFilter {
         LEVEL_EXPS_MAP.put(API, Arrays.asList("*Api", "*ApiImpl"));
         LEVEL_EXPS_MAP.put(SERVICE, Arrays.asList("*Service", "*ServiceImpl"));
         LEVEL_EXPS_MAP.put(CACHE, Arrays.asList("*Cache", "*CacheImpl"));
-        LEVEL_EXPS_MAP.put(DAO,  Arrays.asList("*DAO", "*Dao","*Repository","*RepositoryImpl"));
+        LEVEL_EXPS_MAP.put(DAO, Arrays.asList("*DAO", "*Dao"));
         LEVEL_EXPS_MAP.put(UTILS, Collections.singletonList("*Utils"));
     }
 

@@ -16,6 +16,8 @@ public interface PropertyKeys {
         ConfigKey DEBUG = ConfigKey.of("debug", "Debug.PrintDebugLog");
 
         ConfigKey PROPERTIES_FILE_DIR = ConfigKey.of("properties.dir", "MyPerf4JPropDIR");
+
+        ConfigKey APOLLO_CONFIG_SERVICE_URL = ConfigKey.of("apollo.config.service.url", "apollo.config.service.url");
     }
 
     interface HttpServer {
