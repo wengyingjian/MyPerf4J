@@ -39,6 +39,7 @@ public class PluginAdapter {
             if (plugin.matches(classifier)) {
                 //第一个参数：固定：开始时间
                 adapter.visitVarInsn(Opcodes.LLOAD, startTimeIdentifier);
+                Logger.info("LLOAD [" + classifier + "],startTimeIdentifier:" + startTimeIdentifier);
 
                 //第二个参数：固定：classifier
                 adapter.visitLdcInsn(classifier);

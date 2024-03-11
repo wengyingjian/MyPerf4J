@@ -30,4 +30,18 @@ public class DbQueryDslPlugin extends BaseInjectPlugin {
 //        long endNanos = System.nanoTime();
 //        MethodObserver.observe(DB_METRIC, uri, startNanos, endNanos);
     }
+
+
+//        if ("com/ebaolife/bedrock/entity/QueryDslBaseDao".equals(innerClassName)) {
+//        //注入开始时间
+//        mv.visitVarInsn(LLOAD, startTimeIdentifier);
+//
+//        //注入this
+//        mv.visitVarInsn(ALOAD, 0);
+//
+//        mv.visitLdcInsn(methodName);
+//
+//        mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "dbdslprof", "(JLjava/lang/Object;Ljava/lang/String;)V", false);
+//        return;
+//    }
 }

@@ -52,39 +52,29 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
      */
     @Override
     protected void onMethodEnter() {
-        if (profiling()) {
-            //记录方法的基本信息：key为id，value为方法元数据
-            maintainer.addRecorder(methodTagId, recorderConf.getProfilingParam(innerClassName + "/" + methodName));
-
-            //记录方法进入当前时间
-            mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "nanoTime", "()J", false);
-            startTimeIdentifier = newLocal(Type.LONG_TYPE);
-            mv.visitVarInsn(LSTORE, startTimeIdentifier);
+        if (!profiling()) {
+            return;
         }
+        //记录方法的基本信息：key为id，value为方法元数据
+        maintainer.addRecorder(methodTagId, recorderConf.getProfilingParam(innerClassName + "/" + methodName));
+
+        //记录方法进入当前时间
+        mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "nanoTime", "()J", false);
+        startTimeIdentifier = newLocal(Type.LONG_TYPE);
+        mv.visitVarInsn(LSTORE, startTimeIdentifier);
     }
 
     @Override
     protected void onMethodExit(int opcode) {
+        if (!profiling()) {
+            return;
+        }
+
         if (PluginAdapter.onMethodExitInject(this, startTimeIdentifier, innerClassName, methodName)) {
             return;
         }
 
-
-        if ("com/ebaolife/bedrock/entity/QueryDslBaseDao".equals(innerClassName)) {
-            //注入开始时间
-            mv.visitVarInsn(LLOAD, startTimeIdentifier);
-
-            //注入this
-            mv.visitVarInsn(ALOAD, 0);
-
-            mv.visitLdcInsn(methodName);
-
-            mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "dbdslprof", "(JLjava/lang/Object;Ljava/lang/String;)V", false);
-            return;
-        }
-
-
-        if (profiling() && ((IRETURN <= opcode && opcode <= RETURN) || opcode == ATHROW)) {
+        if (((IRETURN <= opcode && opcode <= RETURN) || opcode == ATHROW)) {
             mv.visitVarInsn(LLOAD, startTimeIdentifier);
             mv.visitLdcInsn(methodTagId);
             mv.visitMethodInsn(INVOKESTATIC, PROFILING_ASPECT_INNER_NAME, "profiling", "(JI)V", false);

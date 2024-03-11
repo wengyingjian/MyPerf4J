@@ -161,6 +161,8 @@ public abstract class AbstractBootstrap {
             String appName = ProfilingConfig.basicConfig().getAppName();
             Properties properties = new Properties();
 
+            Logger.info("loading apollo config: appName=" + appName);
+
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 String key = entry.getKey();
                 int prefixIndex = key.indexOf(".");
