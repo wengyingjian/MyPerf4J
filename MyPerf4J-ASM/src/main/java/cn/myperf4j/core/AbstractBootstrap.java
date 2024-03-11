@@ -171,6 +171,7 @@ public abstract class AbstractBootstrap {
                 if (Objects.equals(appName, keyPrefix)) {
                     key = key.substring(prefixIndex + 1);
                     properties.setProperty(key, entry.getValue());
+                    Logger.info("loading apollo config:" + key + "=" + entry.getValue());
                 }
             }
             return MyProperties.initialApollo(properties);
