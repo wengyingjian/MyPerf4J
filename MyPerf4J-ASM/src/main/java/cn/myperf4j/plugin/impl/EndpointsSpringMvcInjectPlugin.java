@@ -3,6 +3,7 @@ package cn.myperf4j.plugin.impl;
 import cn.myperf4j.common.util.StrUtils;
 import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.plugin.BaseInjectPlugin;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import static cn.myperf4j.core.prometheus.MethodObserver.ENDPOINTS_METRIC;
@@ -16,11 +17,12 @@ public class EndpointsSpringMvcInjectPlugin extends BaseInjectPlugin {
     @Override
     public boolean matches(String classifier) {
         return ENDPOINTS_CLASSIFIER.equals(classifier);
+//        return false;
     }
 
     @Override
-    public boolean injectParams(AdviceAdapter adapter) {
-        return injectAllParams(adapter);
+    public boolean injectParams(AdviceAdapter adapter, MethodVisitor mv) {
+        return injectAllParams(adapter, mv);
     }
 
     @Override

@@ -3,6 +3,7 @@ package cn.myperf4j.plugin.impl;
 import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.plugin.BaseInjectPlugin;
 import cn.myperf4j.plugin.FieldArgs;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import java.lang.reflect.Method;
@@ -18,13 +19,13 @@ public class DBMybtisPlusPlugin extends BaseInjectPlugin {
     }
 
     @Override
-    public boolean injectParams(AdviceAdapter adapter) {
-        return injectAllParams(adapter);
+    public boolean injectParams(AdviceAdapter adapter, MethodVisitor mv) {
+        return injectAllParams(adapter, mv);
     }
 
     @Override
-    public boolean injectFields(AdviceAdapter adapter) {
-        return injectFields(adapter, Arrays.asList(
+    public boolean injectFields(MethodVisitor mv) {
+        return injectFields(mv, Arrays.asList(
                 FieldArgs.builder()
                         .owner("com/baomidou/mybatisplus/core/override/MybatisMapperProxy")
                         .name("mapperInterface")

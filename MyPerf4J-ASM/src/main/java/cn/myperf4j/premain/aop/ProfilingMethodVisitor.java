@@ -3,11 +3,15 @@ package cn.myperf4j.premain.aop;
 import cn.myperf4j.common.MethodTag;
 import cn.myperf4j.common.config.Config;
 import cn.myperf4j.common.config.ProfilingConfig;
+import cn.myperf4j.common.util.Logger;
 import cn.myperf4j.core.MethodTagMaintainer;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
+import cn.myperf4j.plugin.InjectPlugin;
 import cn.myperf4j.plugin.PluginAdapter;
+import cn.myperf4j.plugin.impl.EndpointsSpringMvcInjectPlugin;
 import cn.myperf4j.premain.ASMRecorderMaintainer;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 
@@ -70,7 +74,7 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
             return;
         }
 
-        if (PluginAdapter.onMethodExitInject(this, startTimeIdentifier, innerClassName, methodName)) {
+        if (PluginAdapter.onMethodExitInject(this, mv,startTimeIdentifier, innerClassName, methodName)) {
             return;
         }
 
@@ -85,4 +89,5 @@ public class ProfilingMethodVisitor extends AdviceAdapter {
     private boolean profiling() {
         return methodTagId >= 0;
     }
+
 }

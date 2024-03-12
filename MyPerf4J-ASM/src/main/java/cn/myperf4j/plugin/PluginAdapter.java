@@ -3,6 +3,7 @@ package cn.myperf4j.plugin;
 import cn.myperf4j.common.util.Logger;
 import cn.myperf4j.plugin.impl.*;
 import cn.myperf4j.premain.aop.ProfilingMethodVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
@@ -14,7 +15,7 @@ import java.util.List;
 public class PluginAdapter {
 
 
-    private static final List<InjectPlugin> PLUGIN_LIST = new ArrayList<>();
+    public static final List<InjectPlugin> PLUGIN_LIST = new ArrayList<>();
 
     static {
         PLUGIN_LIST.add(new EndpointsSpringMvcInjectPlugin());
@@ -31,39 +32,40 @@ public class PluginAdapter {
      * @return
      * @see ProfilingMethodVisitor
      */
-    public static boolean onMethodExitInject(AdviceAdapter adapter, int startTimeIdentifier, String innerClassName, String methodName) {
+    public static boolean onMethodExitInject(AdviceAdapter adapter, MethodVisitor mv, int startTimeIdentifier, String innerClassName, String methodName) {
         //字节码类描述符，用于匹配插件
         String classifier = innerClassName + "#" + methodName;
 
-        for (InjectPlugin plugin : PLUGIN_LIST) {
-            if (plugin.matches(classifier)) {
-                //第一个参数：固定：开始时间
-                adapter.visitVarInsn(Opcodes.LLOAD, startTimeIdentifier);
-                Logger.info("LLOAD [" + classifier + "],startTimeIdentifier:" + startTimeIdentifier);
-
-                //第二个参数：固定：classifier
-                adapter.visitLdcInsn(classifier);
-
-                //第三个参数：固定：当前对象
-                adapter.visitVarInsn(Opcodes.ALOAD, 0);
-
-                //第四个参数：自定义：可以注入需要的属性
-                if (!plugin.injectFields(adapter)) {
-                    adapter.visitInsn(Opcodes.ACONST_NULL);
-                }
-
-                //第五个参数：自定义：可以注入需要的方法
-                if (!plugin.injectParams(adapter)) {
-                    adapter.visitInsn(Opcodes.ACONST_NULL);
-                }
-
-                //调用统计方法
-                adapter.visitMethodInsn(Opcodes.INVOKESTATIC, getOwner(), getMethodName(), getMethodDescriptor(), false);
-                return true;
-            }
+        InjectPlugin plugin = PLUGIN_LIST.stream().filter(p -> p.matches(classifier)).findFirst().orElse(null);
+        if (plugin == null) {
+            return false;
         }
 
-        return false;
+        //第一个参数：固定：开始时间
+        mv.visitVarInsn(Opcodes.LLOAD, startTimeIdentifier);
+        Logger.info("LLOAD [" + classifier + "],startTimeIdentifier:" + startTimeIdentifier);
+
+        //第二个参数：固定：classifier
+        mv.visitLdcInsn(classifier);
+
+        //第三个参数：固定：当前对象
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+
+        //第四个参数：自定义：可以注入需要的属性
+        if (!plugin.injectFields(adapter)) {
+            //否则，注入空
+            mv.visitInsn(Opcodes.ACONST_NULL);
+        }
+
+        //第五个参数：自定义：可以注入需要的方法
+        if (!plugin.injectParams(adapter, mv)) {
+            //否则，注入空
+            mv.visitInsn(Opcodes.ACONST_NULL);
+        }
+
+        //调用统计方法
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, getOwner(), getMethodName(), getMethodDescriptor(), false);
+        return true;
     }
 
     /**
@@ -92,7 +94,7 @@ public class PluginAdapter {
     /**
      * "onMethodExitRecord"
      */
-    private static String getMethodName() {
+    public static String getMethodName() {
         return "onMethodExitRecord";
 
     }
@@ -100,11 +102,11 @@ public class PluginAdapter {
     /**
      * "cn/myperf4j/premain/aop/ProfilingAspect"
      */
-    private static String getOwner() {
+    public static String getOwner() {
         return Type.getInternalName(PluginAdapter.class);
     }
 
-    private static String getMethodDescriptor() {
+    public static String getMethodDescriptor() {
         Method[] methods = PluginAdapter.class.getMethods();
         for (Method method : methods) {
             if (method.getName().equals(getMethodName())) {

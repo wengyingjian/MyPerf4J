@@ -1,5 +1,6 @@
 package cn.myperf4j.plugin;
 
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 public interface InjectPlugin {
@@ -7,9 +8,9 @@ public interface InjectPlugin {
     boolean matches(String classifier);
 
 
-    boolean injectFields(AdviceAdapter adapter);
+    boolean injectFields(MethodVisitor mv);
 
-    boolean injectParams(AdviceAdapter adapter);
+    boolean injectParams(AdviceAdapter adapter, MethodVisitor mv);
 
     /**
      * 该方法运行时每次调用到对应的方法都会被调用

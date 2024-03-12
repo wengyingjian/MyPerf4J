@@ -36,7 +36,7 @@ public class ProfilingDynamicMethodVisitor extends AdviceAdapter {
 
     @Override
     protected void onMethodExit(int opcode) {
-        if (PluginAdapter.onMethodExitInject(this, startTimeIdentifier, innerClassName, methodName)) {
+        if (PluginAdapter.onMethodExitInject(this, mv, startTimeIdentifier, innerClassName, methodName)) {
             return;
         }
 

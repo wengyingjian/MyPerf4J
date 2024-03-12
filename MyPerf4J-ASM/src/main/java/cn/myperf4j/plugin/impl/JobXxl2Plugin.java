@@ -3,7 +3,7 @@ package cn.myperf4j.plugin.impl;
 import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.plugin.BaseInjectPlugin;
 import cn.myperf4j.plugin.FieldArgs;
-import org.objectweb.asm.commons.AdviceAdapter;
+import org.objectweb.asm.MethodVisitor;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -18,8 +18,8 @@ public class JobXxl2Plugin extends BaseInjectPlugin {
     }
 
     @Override
-    public boolean injectFields(AdviceAdapter adapter) {
-        return injectFields(adapter, Arrays.asList(
+    public boolean injectFields(MethodVisitor mv) {
+        return injectFields(mv, Arrays.asList(
                 FieldArgs.builder()
                         .owner("com/xxl/job/core/handler/impl/MethodJobHandler")
                         .name("method")
