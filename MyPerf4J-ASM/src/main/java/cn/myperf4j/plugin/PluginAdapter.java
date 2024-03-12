@@ -43,7 +43,6 @@ public class PluginAdapter {
 
         //第一个参数：固定：开始时间
         mv.visitVarInsn(Opcodes.LLOAD, startTimeIdentifier);
-        Logger.info("LLOAD [" + classifier + "],startTimeIdentifier:" + startTimeIdentifier);
 
         //第二个参数：固定：classifier
         mv.visitLdcInsn(classifier);

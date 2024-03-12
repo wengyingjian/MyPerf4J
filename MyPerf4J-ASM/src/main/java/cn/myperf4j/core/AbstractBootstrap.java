@@ -185,14 +185,8 @@ public abstract class AbstractBootstrap {
 
     public boolean initPrometheus() {
         CollectorRegistry registry = CollectorRegistry.defaultRegistry;
-        (new StandardExports()).register(registry);
-        (new MemoryPoolsExports()).register(registry);
-        (new MemoryAllocationExports()).register(registry);
-        (new BufferPoolsExports()).register(registry);
-        (new GarbageCollectorExports()).register(registry);
-        (new ThreadExports()).register(registry);
-        (new ClassLoadingExports()).register(registry);
-        (new VersionInfoExports()).register(registry);
+
+        DefaultExports.register(registry);
         (new WebContainerExport()).register(registry);
         return true;
     }
