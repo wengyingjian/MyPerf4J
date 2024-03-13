@@ -64,7 +64,6 @@ public final class ProfilingFilter {
         includePackageExp.add("org/springframework/web/servlet/mvc/method/AbstractHandlerMethodAdapter"); //springmvc
         includePackageExp.add("feign/AsyncResponseHandler"); //feign
         includePackageExp.add("feign/hystrix/HystrixInvocationHandler"); //feign
-        includePackageExp.add("com/xxl/job/core/handler/impl/MethodJobHandler"); //xxl-job
         includePackageExp.add("org/redisson/Redisson"); //redisson
         includePackageExp.add("org/redisson/RedissonBucket"); //redisson
         includePackageExp.add("org/redisson/RedissonLock"); //redisson
@@ -110,8 +109,6 @@ public final class ProfilingFilter {
         excludeMethods.add("RedisTemplate.preProcessConnection"); //redisTemplate
         excludeMethods.add("RedisTemplate.postProcessResult"); //redisTemplate
         excludeMethods.add("RedisTemplate.execute"); //redisTemplate
-        excludeMethods.add("MethodJobHandler.init"); //xxljob
-        excludeMethods.add("QueryDslBaseDao.rectifyExpressions"); //dsl
 
     }
 

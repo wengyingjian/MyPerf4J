@@ -21,7 +21,6 @@ public class PluginAdapter {
         PLUGIN_LIST.add(new EndpointsSpringMvcInjectPlugin());
         PLUGIN_LIST.add(new RpcFeign11Plugin());
         PLUGIN_LIST.add(new RpcFeign9Plugin());
-        PLUGIN_LIST.add(new JobXxl2Plugin());
         PLUGIN_LIST.add(new DBMybtisPlusPlugin());
     }
 
