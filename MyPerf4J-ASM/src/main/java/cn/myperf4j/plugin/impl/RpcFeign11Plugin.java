@@ -8,7 +8,7 @@ import org.objectweb.asm.commons.AdviceAdapter;
 
 import static cn.myperf4j.core.prometheus.MethodObserver.RPC_METRIC;
 
-public class RpcFeignPlugin extends BaseInjectPlugin {
+public class RpcFeign11Plugin extends BaseInjectPlugin {
 
     public static final String RPC_CLASSIFIER = "feign/AsyncResponseHandler#handleResponse";
 

@@ -63,6 +63,7 @@ public final class ProfilingFilter {
 
         includePackageExp.add("org/springframework/web/servlet/mvc/method/AbstractHandlerMethodAdapter"); //springmvc
         includePackageExp.add("feign/AsyncResponseHandler"); //feign
+        includePackageExp.add("feign/hystrix/HystrixInvocationHandler"); //feign
         includePackageExp.add("com/xxl/job/core/handler/impl/MethodJobHandler"); //xxl-job
         includePackageExp.add("org/redisson/Redisson"); //redisson
         includePackageExp.add("org/redisson/RedissonBucket"); //redisson
@@ -98,6 +99,8 @@ public final class ProfilingFilter {
         excludeMethods.add("AbstractHandlerMethodAdapter.getLastModified"); //springmvc
         excludeMethods.add("AsyncResponseHandler.isVoidType"); //feign
         excludeMethods.add("AsyncResponseHandler.decode"); //feign
+        excludeMethods.add("HystrixInvocationHandler.toFallbackMethod"); //feign
+        excludeMethods.add("HystrixInvocationHandler.toSetters"); //feign
         excludeMethods.add("Redisson.enableRedissonReferenceSupport"); //redisson
         excludeMethods.add("Redisson.create"); //redisson
         excludeMethods.add("Redisson.getBucket"); //redisson

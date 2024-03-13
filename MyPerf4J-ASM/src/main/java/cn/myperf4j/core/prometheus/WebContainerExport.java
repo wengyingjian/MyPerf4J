@@ -64,8 +64,8 @@ public class WebContainerExport extends Collector {
 
     private void add(List<MetricFamilySamples> sampleFamilies, Predicate<String> nameFilter, List<ThreadInfo> threadInfoList, String metricName, Function<List<ThreadInfo>, Double> f) throws JMException {
         if (nameFilter.test(metricName)) {
-            GaugeMetricFamily threadStateFamily = new GaugeMetricFamily(metricName, metricName, Collections.singletonList("application"));
-            threadStateFamily.addMetric(Arrays.asList("appnamehere"), f.apply(threadInfoList));
+            GaugeMetricFamily threadStateFamily = new GaugeMetricFamily(metricName, metricName, Collections.emptyList());
+            threadStateFamily.addMetric(Collections.emptyList(), f.apply(threadInfoList));
 
             sampleFamilies.add(threadStateFamily);
         }
