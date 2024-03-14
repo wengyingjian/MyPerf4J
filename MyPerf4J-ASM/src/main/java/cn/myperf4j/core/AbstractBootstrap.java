@@ -13,6 +13,7 @@ import cn.myperf4j.common.http.server.SimpleHttpServer;
 import cn.myperf4j.common.util.Logger;
 import cn.myperf4j.common.util.NumUtils;
 import cn.myperf4j.common.util.StrUtils;
+import cn.myperf4j.core.prometheus.MemoryExport;
 import cn.myperf4j.core.prometheus.WebContainerExport;
 import cn.myperf4j.core.prometheus.format.ApplicationTextFormat;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
@@ -186,8 +187,16 @@ public abstract class AbstractBootstrap {
     public boolean initPrometheus() {
         CollectorRegistry registry = CollectorRegistry.defaultRegistry;
 
-        DefaultExports.register(registry);
+        (new StandardExports()).register(registry);
+        (new MemoryPoolsExports()).register(registry);
+        (new MemoryAllocationExports()).register(registry);
+        (new BufferPoolsExports()).register(registry);
+        (new GarbageCollectorExports()).register(registry);
+        (new ThreadExports()).register(registry);
+        (new ClassLoadingExports()).register(registry);
+
         (new WebContainerExport()).register(registry);
+        (new MemoryExport()).register(registry);
         return true;
     }
 
