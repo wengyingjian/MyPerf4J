@@ -114,9 +114,5 @@ public class PluginAdapter {
         throw new RuntimeException("no onMethodExitRecord method found for asm inject");
     }
 
-    public static void main(String[] args) {
-        System.out.println(getMethodDescriptor());
-    }
-
 
 }

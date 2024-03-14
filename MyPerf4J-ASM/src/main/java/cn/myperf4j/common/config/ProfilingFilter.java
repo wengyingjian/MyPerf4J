@@ -63,7 +63,8 @@ public final class ProfilingFilter {
 
         includePackageExp.add("org/springframework/web/servlet/mvc/method/AbstractHandlerMethodAdapter"); //springmvc
         includePackageExp.add("feign/AsyncResponseHandler"); //feign
-        includePackageExp.add("feign/hystrix/HystrixInvocationHandler"); //feign
+        includePackageExp.add("feign/SynchronousMethodHandler"); //feign
+
         includePackageExp.add("org/redisson/Redisson"); //redisson
         includePackageExp.add("org/redisson/RedissonBucket"); //redisson
         includePackageExp.add("org/redisson/RedissonLock"); //redisson
