@@ -49,14 +49,14 @@ public class MethodObserver {
 
         String uri = methodTag.getSimpleDesc();
         Summary metric = OTHER_METRIC;
-        if (uri.contains("Redisson") || uri.contains("Redis")) {
-            //RedissonBucket.get()
-            //RedissonBucket.setAsync(Object)
-            metric = REDIS_METRIC;
-        } else if (ClassLevels.DAO.equals(methodTag.getLevel())) {
-            //BaseMapper#selectList(InsAgentMapper)
-            //InsAgentMapper#testSelectXml
+        if (ClassLevels.DAO.equals(methodTag.getLevel())) {
             metric = DB_METRIC;
+        } else if (ClassLevels.API.equals(methodTag.getLevel())) {
+            metric = RPC_METRIC;
+        } else if (ClassLevels.CONTROLLER.equals(methodTag.getLevel())) {
+            metric = ENDPOINTS_METRIC;
+        } else if (ClassLevels.CACHE.equals(methodTag.getLevel())) {
+            metric = REDIS_METRIC;
         }
         uri = StrUtils.formatMethod(uri);
         observe(metric, uri, startNanoTime, endNanoTime);
