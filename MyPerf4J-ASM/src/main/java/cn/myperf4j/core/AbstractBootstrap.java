@@ -159,29 +159,36 @@ public abstract class AbstractBootstrap {
             String json = ApolloClient.fetchApolloConfig(ProfilingConfig.basicConfig().getApolloConfigServiceUrl());
             Map<String, String> map = JSONUtil.toBean(json, Map.class);
 
+            String defaultAppName = "Default";
+            MyProperties.initialDefaultApollo(extractApolloProperties(map, defaultAppName));
+
             String appName = ProfilingConfig.basicConfig().getAppName();
-            Properties properties = new Properties();
-
-            Logger.info("loading apollo config: appName=" + appName);
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                String key = entry.getKey();
-                int prefixIndex = key.indexOf(".");
-                if (prefixIndex == -1) {
-                    continue;
-                }
-                String keyPrefix = key.substring(0, prefixIndex);
-                if (Objects.equals(appName, keyPrefix)) {
-                    key = key.substring(prefixIndex + 1);
-                    properties.setProperty(key, entry.getValue());
-                    Logger.info("loading apollo config:" + key + "=" + entry.getValue());
-                }
-            }
-            return MyProperties.initialApollo(properties);
+            return MyProperties.initialAppApollo(extractApolloProperties(map, appName));
         } catch (Exception e) {
             Logger.error("AbstractBootstrap.initApolloProperties()", e);
         }
         return false;
+    }
+
+    private Properties extractApolloProperties(Map<String, String> apolloConfigMap, String appName) {
+        Properties properties = new Properties();
+
+        Logger.info("loading apollo config: appName=" + appName);
+
+        for (Map.Entry<String, String> entry : apolloConfigMap.entrySet()) {
+            String key = entry.getKey();
+            int prefixIndex = key.indexOf(".");
+            if (prefixIndex == -1) {
+                continue;
+            }
+            String keyPrefix = key.substring(0, prefixIndex);
+            if (Objects.equals(appName, keyPrefix)) {
+                key = key.substring(prefixIndex + 1);
+                properties.setProperty(key, entry.getValue());
+                Logger.info("loading apollo config:" + key + "=" + entry.getValue());
+            }
+        }
+        return properties;
     }
 
     public boolean initPrometheus() {

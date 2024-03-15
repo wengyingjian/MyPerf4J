@@ -12,6 +12,6 @@ public class ApolloClient {
     public static String fetchApolloConfig(String apolloConfigServiceUrl) {
         String ip = IpUtils.getLocalIp();
         String url = String.format("%s/configfiles/json/bedrock-sidecar/default/application?ip=%s", apolloConfigServiceUrl, ip);
-        return HttpUtil.get(url);
+        return HttpUtil.get(url, 10000);
     }
 }

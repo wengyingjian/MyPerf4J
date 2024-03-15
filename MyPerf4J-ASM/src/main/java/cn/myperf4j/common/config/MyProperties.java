@@ -11,8 +11,20 @@ import static cn.myperf4j.common.util.StrUtils.trimToEmpty;
  */
 public final class MyProperties {
 
+    /**
+     * 本地配置文件，提供基础配置及兜底配置
+     */
     private static Properties properties;
-    private static Properties apolloProperties;
+
+    /**
+     * apollo默认配置，提供默认配置
+     */
+    private static Properties apolloDefaultProperties;
+
+    /**
+     * apollo应用配置，提供自定义配置
+     */
+    private static Properties apolloAppProperties;
 
     private MyProperties() {
         //empty
@@ -27,12 +39,21 @@ public final class MyProperties {
         return true;
     }
 
-    public static synchronized boolean initialApollo(Properties prop) {
-        if (apolloProperties != null || prop == null) {
+    public static synchronized boolean initialAppApollo(Properties prop) {
+        if (apolloAppProperties != null || prop == null) {
             return false;
         }
 
-        apolloProperties = prop;
+        apolloAppProperties = prop;
+        return true;
+    }
+
+    public static synchronized boolean initialDefaultApollo(Properties prop) {
+        if (apolloDefaultProperties != null || prop == null) {
+            return false;
+        }
+
+        apolloDefaultProperties = prop;
         return true;
     }
 
@@ -57,15 +78,23 @@ public final class MyProperties {
             return value;
         }
 
-        //apollo优先级第二
-        if (apolloProperties != null) {
-            final String apolloValue = apolloProperties.getProperty(key);
+        //apollo应用配置优先级第二
+        if (apolloAppProperties != null) {
+            final String apolloValue = apolloAppProperties.getProperty(key);
             if (apolloValue != null) {
                 return apolloValue;
             }
         }
 
-        //配置文件优先级最低
+        //apollo默认配置优先级第三
+        if (apolloDefaultProperties != null) {
+            final String apolloValue = apolloDefaultProperties.getProperty(key);
+            if (apolloValue != null) {
+                return apolloValue;
+            }
+        }
+
+        //配置文件优先级第四
         return properties.getProperty(key);
     }
 
