@@ -1,7 +1,9 @@
 package cn.myperf4j.common.apollo;
 
+import cn.hutool.core.net.Ipv4Util;
 import cn.hutool.http.HttpUtil;
 import cn.myperf4j.common.util.net.IpUtils;
+import sun.net.util.IPAddressUtil;
 
 public class ApolloClient {
 

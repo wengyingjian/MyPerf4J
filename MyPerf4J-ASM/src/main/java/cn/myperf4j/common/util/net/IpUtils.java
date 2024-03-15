@@ -22,7 +22,6 @@ public final class IpUtils {
             final InetAddress innerInetAddr = getInnerInetAddr();
             localIp = innerInetAddr.getHostAddress();
             localHostName = innerInetAddr.getHostName();
-            Logger.info("IpUtils:1 localIp=" + localIp + ", localHostName=" + localHostName);
         } catch (Throwable t) {
             Logger.error("IpUtils.static1 initializer()", t);
         }
@@ -32,14 +31,13 @@ public final class IpUtils {
             if (!isInnerIpv4(localIp)) {
                 localIp = localInetAddress.getHostAddress();
                 localHostName = localInetAddress.getHostName();
-                Logger.info("IpUtils:2 localIp=" + localIp + ", localHostName=" + localHostName);
             } else if (localIp.equals(localHostName)) {
                 localHostName = localInetAddress.getHostName();
-                Logger.info("IpUtils:3 localIp=" + localIp + ", localHostName=" + localHostName);
             }
         } catch (Throwable t) {
             Logger.error("IpUtils.static2 initializer()", t);
         }
+        Logger.info("IpUtils: localIp=" + localIp + ", localHostName=" + localHostName);
     }
 
     private static InetAddress getInnerInetAddr() throws UnknownHostException {

@@ -18,7 +18,7 @@ public final class Logger {
 
     private static boolean debugEnable;
 
-    private static final String PREFIX = " [MyPerf4J] ";
+    private static final String PREFIX = " [bedrock-sidecar] ";
 
     private static final String INFO_LEVEL = "INFO ";
 

@@ -55,7 +55,7 @@ public abstract class AbstractBootstrap {
                 return true;
             }
 
-            Logger.info("Thanks sincerely for using MyPerf4J.");
+            Logger.info("Thanks sincerely for using bedrock-sidecar");
             if (!(initStatus = doInitial())) {
                 Logger.error("AbstractBootstrap doInitial() FAILURE!!!");
                 return false;
@@ -173,8 +173,6 @@ public abstract class AbstractBootstrap {
     private Properties extractApolloProperties(Map<String, String> apolloConfigMap, String appName) {
         Properties properties = new Properties();
 
-        Logger.info("loading apollo config: appName=" + appName);
-
         for (Map.Entry<String, String> entry : apolloConfigMap.entrySet()) {
             String key = entry.getKey();
             int prefixIndex = key.indexOf(".");
@@ -185,7 +183,7 @@ public abstract class AbstractBootstrap {
             if (Objects.equals(appName, keyPrefix)) {
                 key = key.substring(prefixIndex + 1);
                 properties.setProperty(key, entry.getValue());
-                Logger.info("loading apollo config:" + key + "=" + entry.getValue());
+                Logger.info("loading apollo config:[" + appName + "]" + key + "=" + entry.getValue());
             }
         }
         return properties;
@@ -451,6 +449,18 @@ public abstract class AbstractBootstrap {
     public abstract boolean initOther();
 
     private void printBannerText() {
-        Logger.info(LINE_SEPARATOR + "    __  ___      ____            ______ __      __" + LINE_SEPARATOR + "   /  |/  /_  __/ __ \\___  _____/ __/ // /     / /" + LINE_SEPARATOR + "  / /|_/ / / / / /_/ / _ \\/ ___/ /_/ // /___  / / " + LINE_SEPARATOR + " / /  / / /_/ / ____/  __/ /  / __/__  __/ /_/ /  " + LINE_SEPARATOR + "/_/  /_/\\__, /_/    \\___/_/  /_/    /_/  \\____/   " + LINE_SEPARATOR + "       /____/                                     v" + Version.getVersion() + LINE_SEPARATOR);
+        // __                     __                         __                     _        __
+        //
+        //
+        //
+        //
+        //[__;.__.'  '.__.' '.__.;__][___]    '.__.' '.___.'[__|  \_]      [\__) )[___]'.__.;__]'.__.''.___.'\'-;__/[___]
+        Logger.info(LINE_SEPARATOR
+                + " __                     __                         __                     _        __                              " + LINE_SEPARATOR
+                + "[  |                   |  ]                       [  |  _                (_)      |  ]                             " + LINE_SEPARATOR
+                + " | |.--.   .---.   .--.| |  _ .--.   .--.   .---.  | | / ]        .--.   __   .--.| | .---.  .---.  ,--.   _ .--.  " + LINE_SEPARATOR
+                + " | '/'`\\ \\/ /__\\\\/ /'`\\' | [ `/'`\\]/ .'`\\ \\/ /'`\\] | '' <        ( (`\\] [  |/ /'`\\' |/ /__\\\\/ /'`\\]`'_\\ : [ `/'`\\] " + LINE_SEPARATOR
+                + " |  \\__/ || \\__.,| \\__/  |  | |    | \\__. || \\__.  | |`\\ \\        `'.'.  | || \\__/  || \\__.,| \\__. // | |, | |     " + LINE_SEPARATOR
+                + "[__;.__.'  '.__.' '.__.;__][___]    '.__.' '.___.'[__|  \\_]      [\\__) )[___]'.__.;__]'.__.''.___.'\\'-;__/[___]   v" + Version.getVersion() + LINE_SEPARATOR);
     }
 }
