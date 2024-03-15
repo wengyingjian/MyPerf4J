@@ -425,7 +425,6 @@ public abstract class AbstractBootstrap {
                         Logger.setDebugEnable(request.getBoolParam("enable"));
                         break;
                     case "/actuator/prometheus":
-                        Logger.info("get prometheus");
                         return new HttpResponse(OK, new HttpHeaders(0), prometheus());
                     default:
                         return new HttpResponse(NOT_FOUND, new HttpHeaders(0), "");
