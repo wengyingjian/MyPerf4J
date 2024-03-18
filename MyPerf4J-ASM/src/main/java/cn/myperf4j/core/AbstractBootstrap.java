@@ -13,7 +13,6 @@ import cn.myperf4j.common.http.server.SimpleHttpServer;
 import cn.myperf4j.common.util.Logger;
 import cn.myperf4j.common.util.NumUtils;
 import cn.myperf4j.common.util.StrUtils;
-import cn.myperf4j.core.prometheus.MemoryExport;
 import cn.myperf4j.core.prometheus.WebContainerExport;
 import cn.myperf4j.core.prometheus.format.ApplicationText004Format;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
@@ -201,7 +200,6 @@ public abstract class AbstractBootstrap {
         (new ClassLoadingExports()).register(registry);
 
         (new WebContainerExport()).register(registry);
-        (new MemoryExport()).register(registry);
         return true;
     }
 
