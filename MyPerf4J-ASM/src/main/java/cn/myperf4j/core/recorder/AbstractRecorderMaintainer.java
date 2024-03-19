@@ -13,11 +13,8 @@ public abstract class AbstractRecorderMaintainer {
 
     protected AtomicReferenceArray<Recorder> recorderArr;
 
-    private boolean accurateMode;
 
-    public boolean initial(boolean accurateMode) {
-        this.accurateMode = accurateMode;
-
+    public boolean initial() {
         if (!initRecorders()) {
             return false;
         }
@@ -31,10 +28,7 @@ public abstract class AbstractRecorderMaintainer {
 
 
     protected Recorder createRecorder(int methodTagId, int mostTimeThreshold, int outThresholdCount) {
-        if (accurateMode) {
-            return AccurateRecorder.getInstance(methodTagId, mostTimeThreshold, outThresholdCount);
-        }
-        return RoughRecorder.getInstance(methodTagId, mostTimeThreshold);
+        return AccurateRecorder.getInstance(methodTagId, mostTimeThreshold, outThresholdCount);
     }
 
     public abstract void addRecorder(int methodTagId, ProfilingParams params);

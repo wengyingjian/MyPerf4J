@@ -13,8 +13,8 @@ import static cn.myperf4j.common.constant.PropertyKeys.Basic.*;
 import static cn.myperf4j.common.constant.PropertyKeys.Filter.*;
 import static cn.myperf4j.common.constant.PropertyKeys.HttpServer.*;
 import static cn.myperf4j.common.constant.PropertyKeys.Metrics.CLASS_LEVEL_MAPPINGS;
-import static cn.myperf4j.common.constant.PropertyKeys.Recorder.*;
-import static cn.myperf4j.common.constant.PropertyValues.Recorder.MODE_ACCURATE;
+import static cn.myperf4j.common.constant.PropertyKeys.Recorder.SIZE_TIMING_ARR;
+import static cn.myperf4j.common.constant.PropertyKeys.Recorder.SIZE_TIMING_MAP;
 import static cn.myperf4j.common.util.NumUtils.parseInt;
 import static cn.myperf4j.common.util.StrUtils.isBlank;
 
@@ -143,8 +143,6 @@ public class Config {
     @Data
     public static class RecorderConfig {
 
-        private String mode;
-
         private int timingArrSize;
 
         private int timingMapSize;
@@ -155,15 +153,10 @@ public class Config {
 
         public static RecorderConfig loadRecorderConfig() {
             final RecorderConfig config = new RecorderConfig();
-            config.setMode(getStr(MODE, MODE_ACCURATE));
             config.setTimingArrSize(getInt(SIZE_TIMING_ARR, 1024));
             config.setTimingMapSize(getInt(SIZE_TIMING_MAP, 32));
             config.setCommonProfilingParams(ProfilingParams.of(config.getTimingArrSize(), config.getTimingMapSize()));
             return config;
-        }
-
-        public boolean accurateMode() {
-            return MODE_ACCURATE.equalsIgnoreCase(mode);
         }
 
         public void addProfilingParam(String methodName, int timeThreshold, int outThresholdCount) {

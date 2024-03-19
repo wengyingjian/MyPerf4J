@@ -333,9 +333,7 @@ public abstract class AbstractBootstrap {
     private boolean initProfilingParams() {
         try {
             final Config.RecorderConfig recorderConf = ProfilingConfig.recorderConfig();
-            if (recorderConf.accurateMode()) {
-                addProfilingParams(recorderConf, ProfilingConfig.basicConfig().sysProfilingParamsFile());
-            }
+            addProfilingParams(recorderConf, ProfilingConfig.basicConfig().sysProfilingParamsFile());
             return true;
         } catch (Exception e) {
             Logger.error("AbstractBootstrap.initProfilingParams()", e);

@@ -44,19 +44,13 @@ public class ProfilingTransformer implements ClassFileTransformer {
     private byte[] getBytes(ClassLoader loader,
                             String className,
                             byte[] classFileBuffer) {
-        if (needComputeMaxs(loader)) {
-            ClassReader cr = new ClassReader(classFileBuffer);
-            ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
-            ClassVisitor cv = new ProfilingClassAdapter(cw, className);
-            cr.accept(cv, ClassReader.EXPAND_FRAMES);
-            return cw.toByteArray();
-        } else {
-            ClassReader cr = new ClassReader(classFileBuffer);
-            ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
-            ClassVisitor cv = new ProfilingClassAdapter(cw, className);
-            cr.accept(cv, ClassReader.EXPAND_FRAMES);
-            return cw.toByteArray();
-        }
+        final int flags = needComputeMaxs(loader) ? ClassWriter.COMPUTE_MAXS : ClassWriter.COMPUTE_FRAMES;
+
+        ClassReader cr = new ClassReader(classFileBuffer);
+        ClassWriter cw = new ClassWriter(cr, flags);
+        ClassVisitor cv = new ProfilingClassAdapter(cw, className);
+        cr.accept(cv, ClassReader.EXPAND_FRAMES);
+        return cw.toByteArray();
     }
 
     private boolean needComputeMaxs(ClassLoader classLoader) {
