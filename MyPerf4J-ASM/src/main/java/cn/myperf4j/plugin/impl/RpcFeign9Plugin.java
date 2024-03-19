@@ -1,5 +1,6 @@
 package cn.myperf4j.plugin.impl;
 
+import cn.myperf4j.common.constant.MetricEnum;
 import cn.myperf4j.common.util.StrUtils;
 import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.plugin.BaseInjectPlugin;
@@ -8,8 +9,6 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-
-import static cn.myperf4j.core.prometheus.MethodObserver.RPC_METRIC;
 
 public class RpcFeign9Plugin extends BaseInjectPlugin {
 
@@ -37,7 +36,7 @@ public class RpcFeign9Plugin extends BaseInjectPlugin {
         String uri = getMetaDataKey(fields[0]);
         uri = StrUtils.formatMethod(uri);
         long endNanos = System.nanoTime();
-        MethodObserver.observe(RPC_METRIC, uri, startNanos, endNanos);
+        MethodObserver.observe(MetricEnum.RPC.getMetric(), uri, startNanos, endNanos);
     }
 
     /**

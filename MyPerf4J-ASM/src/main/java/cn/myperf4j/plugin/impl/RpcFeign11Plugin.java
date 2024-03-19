@@ -1,12 +1,11 @@
 package cn.myperf4j.plugin.impl;
 
+import cn.myperf4j.common.constant.MetricEnum;
 import cn.myperf4j.common.util.StrUtils;
 import cn.myperf4j.core.prometheus.MethodObserver;
 import cn.myperf4j.plugin.BaseInjectPlugin;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
-
-import static cn.myperf4j.core.prometheus.MethodObserver.RPC_METRIC;
 
 public class RpcFeign11Plugin extends BaseInjectPlugin {
 
@@ -28,7 +27,7 @@ public class RpcFeign11Plugin extends BaseInjectPlugin {
         String uri = String.valueOf(params[1]);
         uri = StrUtils.formatMethod(uri);
         long cost = (long) params[4];
-        MethodObserver.observe(RPC_METRIC, uri, cost);
+        MethodObserver.observe(MetricEnum.RPC.getMetric(), uri, cost);
     }
 
 }
