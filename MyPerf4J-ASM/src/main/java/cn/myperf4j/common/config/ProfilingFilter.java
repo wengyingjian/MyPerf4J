@@ -99,6 +99,11 @@ public final class ProfilingFilter {
         excludeMethods.add("AbstractHandlerMethodAdapter.getLastModified"); //springmvc
         excludeMethods.add("AsyncResponseHandler.isVoidType"); //feign
         excludeMethods.add("AsyncResponseHandler.decode"); //feign
+
+        excludeMethods.add("SynchronousMethodHandler.decode"); //feign
+        excludeMethods.add("SynchronousMethodHandler.executeAndDecode"); //feign
+        excludeMethods.add("SynchronousMethodHandler.targetRequest"); //feign
+
         excludeMethods.add("HystrixInvocationHandler.toFallbackMethod"); //feign
         excludeMethods.add("HystrixInvocationHandler.toSetters"); //feign
         excludeMethods.add("Redisson.enableRedissonReferenceSupport"); //redisson
