@@ -1,10 +1,9 @@
-package cn.myperf4j.core.recorder;
+package cn.myperf4j.metric.core.recorder;
 
+import cn.myperf4j.metric.core.MethodTagMaintainer;
 import com.ebaolife.bedrock.sidecar.common.config.ProfilingParams;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
-
-import static cn.myperf4j.core.MethodTagMaintainer.MAX_NUM;
 
 /**
  * Created by LinShunkang on 2018/4/25
@@ -22,7 +21,7 @@ public abstract class AbstractRecorderMaintainer {
     }
 
     private boolean initRecorders() {
-        recorderArr = new AtomicReferenceArray<>(MAX_NUM);
+        recorderArr = new AtomicReferenceArray<>(MethodTagMaintainer.MAX_NUM);
         return true;
     }
 

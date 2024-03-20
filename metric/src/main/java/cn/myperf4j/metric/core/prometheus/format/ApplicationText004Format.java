@@ -1,4 +1,4 @@
-package cn.myperf4j.core.prometheus.format;
+package cn.myperf4j.metric.core.prometheus.format;
 
 import io.prometheus.client.Collector;
 

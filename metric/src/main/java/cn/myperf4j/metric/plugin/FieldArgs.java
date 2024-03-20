@@ -1,4 +1,4 @@
-package cn.myperf4j.plugin;
+package cn.myperf4j.metric.plugin;
 
 import lombok.Builder;
 import lombok.Data;

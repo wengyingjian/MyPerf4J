@@ -1,4 +1,4 @@
-package cn.myperf4j.core.recorder;
+package cn.myperf4j.metric.core.recorder;
 
 import com.ebaolife.bedrock.sidecar.common.buffer.LongBuf;
 

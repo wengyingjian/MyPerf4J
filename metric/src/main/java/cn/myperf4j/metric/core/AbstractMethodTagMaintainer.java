@@ -1,4 +1,4 @@
-package cn.myperf4j.core;
+package cn.myperf4j.metric.core;
 
 import com.ebaolife.bedrock.sidecar.common.MethodTag;
 

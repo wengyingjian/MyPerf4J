@@ -2,9 +2,9 @@ package cn.myperf4j.premain.aop;
 
 import com.ebaolife.bedrock.sidecar.common.config.ProfilingParams;
 import com.ebaolife.bedrock.sidecar.common.util.Logger;
-import cn.myperf4j.core.MethodTagMaintainer;
-import cn.myperf4j.core.prometheus.MethodObserver;
-import cn.myperf4j.core.recorder.Recorder;
+import cn.myperf4j.metric.core.MethodTagMaintainer;
+import cn.myperf4j.metric.core.prometheus.MethodObserver;
+import cn.myperf4j.metric.core.recorder.Recorder;
 import cn.myperf4j.premain.ASMRecorderMaintainer;
 
 import java.lang.reflect.Method;

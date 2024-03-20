@@ -1,4 +1,4 @@
-package cn.myperf4j.core.prometheus;
+package cn.myperf4j.metric.core.prometheus;
 
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;

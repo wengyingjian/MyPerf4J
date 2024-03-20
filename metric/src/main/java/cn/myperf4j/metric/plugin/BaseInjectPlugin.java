@@ -1,4 +1,4 @@
-package cn.myperf4j.plugin;
+package cn.myperf4j.metric.plugin;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

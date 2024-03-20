@@ -1,8 +1,8 @@
-package cn.myperf4j.core.prometheus;
+package cn.myperf4j.metric.core.prometheus;
 
+import cn.myperf4j.metric.core.MethodTagMaintainer;
 import com.ebaolife.bedrock.sidecar.common.MethodTag;
 import com.ebaolife.bedrock.sidecar.common.util.StrUtils;
-import cn.myperf4j.core.MethodTagMaintainer;
 import cn.myperf4j.metric.constant.MetricEnum;
 import io.prometheus.client.Summary;
 

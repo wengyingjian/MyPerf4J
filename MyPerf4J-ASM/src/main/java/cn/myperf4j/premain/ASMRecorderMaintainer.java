@@ -1,7 +1,7 @@
 package cn.myperf4j.premain;
 
 import com.ebaolife.bedrock.sidecar.common.config.ProfilingParams;
-import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
+import cn.myperf4j.metric.core.recorder.AbstractRecorderMaintainer;
 
 /**
  * Created by LinShunkang on 2018/4/26

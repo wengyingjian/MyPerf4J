@@ -1,8 +1,10 @@
-package cn.myperf4j.plugin;
+package cn.myperf4j.metric.plugin;
 
+import cn.myperf4j.metric.plugin.impl.DBMybtisPlusPlugin;
+import cn.myperf4j.metric.plugin.impl.EndpointsSpringMvcInjectPlugin;
+import cn.myperf4j.metric.plugin.impl.RpcFeign11Plugin;
+import cn.myperf4j.metric.plugin.impl.RpcFeign9Plugin;
 import com.ebaolife.bedrock.sidecar.common.util.Logger;
-import cn.myperf4j.plugin.impl.*;
-import cn.myperf4j.premain.aop.ProfilingMethodVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -29,7 +31,7 @@ public class PluginAdapter {
      * 该方法本身只有在字节码加载的时候调用一次
      *
      * @return
-     * @see ProfilingMethodVisitor
+     * @see "ProfilingMethodVisitor"
      */
     public static boolean onMethodExitInject(AdviceAdapter adapter, MethodVisitor mv, int startTimeIdentifier, String innerClassName, String methodName) {
         //字节码类描述符，用于匹配插件

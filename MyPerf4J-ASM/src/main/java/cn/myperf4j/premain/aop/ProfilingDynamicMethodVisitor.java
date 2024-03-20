@@ -1,6 +1,6 @@
 package cn.myperf4j.premain.aop;
 
-import cn.myperf4j.plugin.PluginAdapter;
+import cn.myperf4j.metric.plugin.PluginAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

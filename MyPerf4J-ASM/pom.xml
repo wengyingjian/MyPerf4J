@@ -38,10 +38,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-commons</artifactId>
-        </dependency>
 
         <!--        <dependency>-->
         <!--            <groupId>MyPerf4J</groupId>-->
