@@ -1,9 +1,9 @@
 package cn.myperf4j.core.prometheus;
 
-import cn.myperf4j.common.MethodTag;
-import cn.myperf4j.common.constant.MetricEnum;
-import cn.myperf4j.common.util.StrUtils;
+import com.ebaolife.bedrock.sidecar.common.MethodTag;
+import com.ebaolife.bedrock.sidecar.common.util.StrUtils;
 import cn.myperf4j.core.MethodTagMaintainer;
+import cn.myperf4j.metric.constant.MetricEnum;
 import io.prometheus.client.Summary;
 
 public class MethodObserver {

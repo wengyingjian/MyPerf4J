@@ -1,6 +1,6 @@
 package cn.myperf4j.plugin;
 
-import cn.myperf4j.common.util.Logger;
+import com.ebaolife.bedrock.sidecar.common.util.Logger;
 import cn.myperf4j.plugin.impl.*;
 import cn.myperf4j.premain.aop.ProfilingMethodVisitor;
 import org.objectweb.asm.MethodVisitor;

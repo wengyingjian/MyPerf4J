@@ -1,8 +1,8 @@
 package cn.myperf4j.premain;
 
-import cn.myperf4j.common.config.Config;
-import cn.myperf4j.common.config.ProfilingConfig;
-import cn.myperf4j.common.util.Logger;
+import com.ebaolife.bedrock.sidecar.common.config.Config;
+import com.ebaolife.bedrock.sidecar.common.config.ProfilingConfig;
+import com.ebaolife.bedrock.sidecar.common.util.Logger;
 import cn.myperf4j.core.AbstractBootstrap;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
 import cn.myperf4j.premain.aop.ProfilingAspect;

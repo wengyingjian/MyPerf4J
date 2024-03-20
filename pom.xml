@@ -7,6 +7,9 @@
     <version>1.0.0-SNAPSHOT</version>
     <modules>
         <module>MyPerf4J-ASM</module>
+        <module>arthas-agent</module>
+        <module>common</module>
+        <module>metric</module>
     </modules>
     <name>MyPerf4J</name>
 

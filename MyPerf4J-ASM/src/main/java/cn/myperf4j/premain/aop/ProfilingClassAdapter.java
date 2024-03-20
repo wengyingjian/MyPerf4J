@@ -1,10 +1,10 @@
 package cn.myperf4j.premain.aop;
 
-import cn.myperf4j.common.config.LevelMappingFilter;
-import cn.myperf4j.common.config.ProfilingConfig;
-import cn.myperf4j.common.config.ProfilingFilter;
-import cn.myperf4j.common.util.Logger;
-import cn.myperf4j.common.util.TypeDescUtils;
+import com.ebaolife.bedrock.sidecar.common.config.LevelMappingFilter;
+import com.ebaolife.bedrock.sidecar.common.config.ProfilingConfig;
+import com.ebaolife.bedrock.sidecar.common.config.ProfilingFilter;
+import com.ebaolife.bedrock.sidecar.common.util.Logger;
+import com.ebaolife.bedrock.sidecar.common.util.TypeDescUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;

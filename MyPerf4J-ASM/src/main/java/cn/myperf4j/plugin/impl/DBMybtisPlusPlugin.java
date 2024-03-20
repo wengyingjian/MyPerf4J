@@ -1,7 +1,7 @@
 package cn.myperf4j.plugin.impl;
 
-import cn.myperf4j.common.constant.MetricEnum;
 import cn.myperf4j.core.prometheus.MethodObserver;
+import cn.myperf4j.metric.constant.MetricEnum;
 import cn.myperf4j.plugin.BaseInjectPlugin;
 import cn.myperf4j.plugin.FieldArgs;
 import org.objectweb.asm.MethodVisitor;

@@ -1,6 +1,6 @@
 package cn.myperf4j.premain;
 
-import cn.myperf4j.common.config.ProfilingParams;
+import com.ebaolife.bedrock.sidecar.common.config.ProfilingParams;
 import cn.myperf4j.core.recorder.AbstractRecorderMaintainer;
 
 /**

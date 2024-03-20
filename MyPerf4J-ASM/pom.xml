@@ -20,22 +20,17 @@
     </properties>
 
     <dependencies>
-        <!-- The client -->
         <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_common</artifactId>
+            <groupId>MyPerf4J</groupId>
+            <artifactId>metric</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
-        <!-- Hotspot JVM metrics-->
         <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_hotspot</artifactId>
+            <groupId>MyPerf4J</groupId>
+            <artifactId>arthas-agent</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
-        <!-- Exposition HTTPServer-->
-        <!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver -->
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_httpserver</artifactId>
-        </dependency>
+
 
         <dependency>
             <groupId>junit</groupId>
@@ -53,22 +48,6 @@
         <!--            <artifactId>MyPerf4J-Core</artifactId>-->
         <!--            <version>${project.version}</version>-->
         <!--        </dependency>-->
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.6</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-json</artifactId>
-            <version>5.8.24</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-http</artifactId>
-            <version>5.8.24</version>
-        </dependency>
     </dependencies>
 
     <build>

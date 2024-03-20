@@ -1,6 +1,6 @@
 package cn.myperf4j.core.recorder;
 
-import cn.myperf4j.common.buffer.LongBuf;
+import com.ebaolife.bedrock.sidecar.common.buffer.LongBuf;
 
 /**
  * Created by LinShunkang on 2018/3/13

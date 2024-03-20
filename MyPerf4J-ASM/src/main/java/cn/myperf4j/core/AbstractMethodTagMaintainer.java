@@ -1,6 +1,6 @@
 package cn.myperf4j.core;
 
-import cn.myperf4j.common.MethodTag;
+import com.ebaolife.bedrock.sidecar.common.MethodTag;
 
 import java.lang.reflect.Method;
 
