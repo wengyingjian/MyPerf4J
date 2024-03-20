@@ -13,7 +13,6 @@
     <artifactId>sidecar-metric</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>com.ebaolife.bedrock</groupId>
             <artifactId>sidecar-common</artifactId>
@@ -29,13 +28,10 @@
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_common</artifactId>
         </dependency>
-        <!-- Hotspot JVM metrics-->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
         </dependency>
-        <!-- Exposition HTTPServer-->
-        <!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver -->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_httpserver</artifactId>

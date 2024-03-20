@@ -22,54 +22,82 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <prometheus.version>0.16.0</prometheus.version>
+        <project.version>1.0.0-SNAPSHOT</project.version>
+        <arthas.version>3.7.2</arthas.version>
+        <hutool.version>5.8.24</hutool.version>
+        <lombok.version>1.18.6</lombok.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+
+
             <dependency>
                 <groupId>com.ebaolife.bedrock</groupId>
                 <artifactId>sidecar-common</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ebaolife.bedrock</groupId>
                 <artifactId>sidecar-metric</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ebaolife.bedrock</groupId>
                 <artifactId>sidecar-arthas-agent</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
 
 
-            <!-- The client -->
+            <!--            lombok-->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+
+            <!--            hutool-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-json</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-http</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+
+            <!--            arthas-->
+            <dependency>
+                <groupId>com.taobao.arthas</groupId>
+                <artifactId>arthas-agent-attach</artifactId>
+                <version>${arthas.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.taobao.arthas</groupId>
+                <artifactId>arthas-packaging</artifactId>
+                <version>${arthas.version}</version>
+            </dependency>
+
+            <!-- prometheus -->
             <dependency>
                 <groupId>io.prometheus</groupId>
                 <artifactId>simpleclient_common</artifactId>
                 <version>${prometheus.version}</version>
             </dependency>
-            <!-- Hotspot JVM metrics-->
             <dependency>
                 <groupId>io.prometheus</groupId>
                 <artifactId>simpleclient_hotspot</artifactId>
                 <version>${prometheus.version}</version>
             </dependency>
-            <!-- Exposition HTTPServer-->
-            <!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver -->
             <dependency>
                 <groupId>io.prometheus</groupId>
                 <artifactId>simpleclient_httpserver</artifactId>
                 <version>${prometheus.version}</version>
             </dependency>
 
-
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.13.2</version>
-                <scope>test</scope>
-            </dependency>
 
             <dependency>
                 <groupId>org.ow2.asm</groupId>
@@ -98,6 +126,14 @@
                 <artifactId>jmh-generator-annprocess</artifactId>
                 <version>${jmh-version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.13.2</version>
+                <scope>test</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
