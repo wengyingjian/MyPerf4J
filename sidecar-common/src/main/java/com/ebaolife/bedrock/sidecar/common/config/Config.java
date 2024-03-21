@@ -133,6 +133,23 @@ public class Config {
     }
 
     @Data
+    public static class ArthasConfig {
+
+        private boolean enabled;
+        private String tunnelServer;
+        private String agentIdHolder;
+
+        public static ArthasConfig loadArthasConfig() {
+            ArthasConfig config = new ArthasConfig();
+            config.setEnabled(MyProperties.getBoolean(PropertyKeys.Arthas.ENABLED, false));
+            config.setTunnelServer(MyProperties.getStr(PropertyKeys.Arthas.TUNNEL_SERVER));
+            config.setAgentIdHolder(MyProperties.getStr(PropertyKeys.Arthas.AGENT_ID_HOLDER));
+            return config;
+        }
+
+    }
+
+    @Data
     public static class RecorderConfig {
 
         private int timingArrSize;
@@ -162,7 +179,6 @@ public class Config {
             }
             return commonProfilingParams;
         }
-
 
     }
 

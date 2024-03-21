@@ -36,6 +36,12 @@ public interface PropertyKeys {
 
     }
 
+    interface Arthas {
+        ConfigKey ENABLED = ConfigKey.of("arthas.enabled", "arthas.enabled");
+        ConfigKey TUNNEL_SERVER = ConfigKey.of("arthas.tunnel.server", "arthas.tunnel.server");
+        ConfigKey AGENT_ID_HOLDER = ConfigKey.of("arthas.agent.id.holder", "arthas.agent.id.holder");
+    }
+
 
     interface Filter {
 

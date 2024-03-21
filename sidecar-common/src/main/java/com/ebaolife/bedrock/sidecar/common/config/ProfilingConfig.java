@@ -10,6 +10,7 @@ public final class ProfilingConfig {
     private static Config.HttpServerConfig HTTP_SERVER_CONFIG;
 
     private static Config.MetricsConfig METRICS_CONFIG;
+    private static Config.ArthasConfig ARTHAS_CONFIG;
 
     private static Config.FilterConfig FILTER_CONFIG;
 
@@ -57,5 +58,13 @@ public final class ProfilingConfig {
 
     public static void recorderConfig(Config.RecorderConfig recorderConfig) {
         RECORDER_CONFIG = recorderConfig;
+    }
+
+    public static Config.ArthasConfig getArthasConfig() {
+        return ARTHAS_CONFIG;
+    }
+
+    public static void setArthasConfig(Config.ArthasConfig arthasConfig) {
+        ARTHAS_CONFIG = arthasConfig;
     }
 }

@@ -1,8 +1,6 @@
 package com.ebaolife.bedrock.sidecar.metric.core;
 
 import cn.hutool.json.JSONUtil;
-import com.ebaolife.bedrock.sidecar.metric.core.prometheus.format.ApplicationText004Format;
-import com.ebaolife.bedrock.sidecar.metric.core.recorder.AbstractRecorderMaintainer;
 import com.ebaolife.bedrock.sidecar.common.Version;
 import com.ebaolife.bedrock.sidecar.common.apollo.ApolloClient;
 import com.ebaolife.bedrock.sidecar.common.config.*;
@@ -16,12 +14,15 @@ import com.ebaolife.bedrock.sidecar.common.util.Logger;
 import com.ebaolife.bedrock.sidecar.common.util.NumUtils;
 import com.ebaolife.bedrock.sidecar.common.util.StrUtils;
 import com.ebaolife.bedrock.sidecar.metric.core.prometheus.WebContainerExport;
+import com.ebaolife.bedrock.sidecar.metric.core.prometheus.format.ApplicationText004Format;
+import com.ebaolife.bedrock.sidecar.metric.core.recorder.AbstractRecorderMaintainer;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.hotspot.*;
 
 import java.io.*;
 import java.util.*;
 
+import static com.ebaolife.bedrock.sidecar.common.config.Config.ArthasConfig.loadArthasConfig;
 import static com.ebaolife.bedrock.sidecar.common.config.Config.BasicConfig.loadBasicConfig;
 import static com.ebaolife.bedrock.sidecar.common.config.Config.FilterConfig.loadFilterConfig;
 import static com.ebaolife.bedrock.sidecar.common.config.Config.HttpServerConfig.loadHttpServerConfig;
@@ -87,6 +88,11 @@ public abstract class AbstractBootstrap {
 
         if (!initProfilingConfig()) {
             Logger.error("AbstractBootstrap initProfilingConfig() FAILURE!!!");
+            return false;
+        }
+
+        if (!initArthasConfig()) {
+            Logger.error("AbstractBootstrap initArthasConfig() FAILURE!!!");
             return false;
         }
 
@@ -234,6 +240,18 @@ public abstract class AbstractBootstrap {
         }
         return false;
     }
+
+
+    private boolean initArthasConfig() {
+        try {
+            ProfilingConfig.setArthasConfig(loadArthasConfig());
+            return true;
+        } catch (Exception e) {
+            Logger.error("AbstractBootstrap.initArthasConfig()", e);
+        }
+        return false;
+    }
+
 
     private boolean initLogger() {
         try {
