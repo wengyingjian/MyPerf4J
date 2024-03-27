@@ -55,14 +55,12 @@ public abstract class AbstractBootstrap {
                 return true;
             }
 
-            Logger.info("Thanks sincerely for using bedrock-sidecar");
             if (!(initStatus = doInitial())) {
                 Logger.error("AbstractBootstrap doInitial() FAILURE!!!");
                 return false;
             }
 
             printBannerText();
-            Logger.info("AbstractBootstrap doInitial() SUCCESS!!!");
             return true;
         } catch (Exception e) {
             Logger.error("AbstractBootstrap.initial()", e);
@@ -165,9 +163,11 @@ public abstract class AbstractBootstrap {
             Map<String, String> map = JSONUtil.toBean(json, Map.class);
 
             String defaultAppName = "Default";
+            Logger.info("====================loading Default apollo config====================");
             MyProperties.initialDefaultApollo(extractApolloProperties(map, defaultAppName));
 
             String appName = ProfilingConfig.basicConfig().getAppName();
+            Logger.info("====================loading [" + appName + "] apollo config====================");
             return MyProperties.initialAppApollo(extractApolloProperties(map, appName));
         } catch (Exception e) {
             Logger.error("AbstractBootstrap.initApolloProperties()", e);
