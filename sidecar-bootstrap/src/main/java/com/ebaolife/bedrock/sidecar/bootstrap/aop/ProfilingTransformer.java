@@ -33,10 +33,10 @@ public class ProfilingTransformer implements ClassFileTransformer {
                 return classFileBuffer;
             }
 
-            Logger.info("class transforming [" + getClassLoaderName(loader) + "]: " + className);
+            Logger.info("class transforming [" + getSimpleClassLoaderName(loader) + "]: " + className);
             return getBytes(loader, className, classFileBuffer);
         } catch (Throwable e) {
-            Logger.error("class transform failed [" + getClassLoaderName(loader) + "]: " + className, e);
+            Logger.error("class transform failed [" + getSimpleClassLoaderName(loader) + "]: " + className, e);
         }
         return classFileBuffer;
     }
@@ -67,6 +67,13 @@ public class ProfilingTransformer implements ClassFileTransformer {
     }
 
     private String getClassLoaderName(ClassLoader classLoader) {
+        if (classLoader == null) {
+            return "null";
+        }
+
+        return classLoader.getClass().getName();
+    }
+    private String getSimpleClassLoaderName(ClassLoader classLoader) {
         if (classLoader == null) {
             return "null";
         }
