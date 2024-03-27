@@ -7,7 +7,7 @@ import com.ebaolife.bedrock.sidecar.common.config.ConfigKey;
  */
 public interface PropertyKeys {
 
-    String PRO_FILE_NAME = "MyPerf4JPropFile";
+    String PRO_FILE_NAME = "bedrockSidecarPropFile";
 
     interface Basic {
 
