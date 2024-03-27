@@ -13,6 +13,7 @@ import com.ebaolife.bedrock.sidecar.common.http.server.SimpleHttpServer;
 import com.ebaolife.bedrock.sidecar.common.util.Logger;
 import com.ebaolife.bedrock.sidecar.common.util.NumUtils;
 import com.ebaolife.bedrock.sidecar.common.util.StrUtils;
+import com.ebaolife.bedrock.sidecar.metric.core.prometheus.MetricTagExport;
 import com.ebaolife.bedrock.sidecar.metric.core.prometheus.WebContainerExport;
 import com.ebaolife.bedrock.sidecar.metric.core.prometheus.format.ApplicationText004Format;
 import com.ebaolife.bedrock.sidecar.metric.core.recorder.AbstractRecorderMaintainer;
@@ -206,6 +207,7 @@ public abstract class AbstractBootstrap {
         (new ClassLoadingExports()).register(registry);
 
         (new WebContainerExport()).register(registry);
+        (new MetricTagExport()).register(registry);
         return true;
     }
 
