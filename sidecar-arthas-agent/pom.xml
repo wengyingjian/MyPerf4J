@@ -18,14 +18,14 @@
             <artifactId>sidecar-common</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.taobao.arthas</groupId>
-            <artifactId>arthas-agent-attach</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.taobao.arthas</groupId>
-            <artifactId>arthas-packaging</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.taobao.arthas</groupId>-->
+<!--            <artifactId>arthas-agent-attach</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.taobao.arthas</groupId>-->
+<!--            <artifactId>arthas-packaging</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>
