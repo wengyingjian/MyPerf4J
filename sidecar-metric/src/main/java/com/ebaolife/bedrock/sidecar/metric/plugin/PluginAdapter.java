@@ -1,9 +1,6 @@
 package com.ebaolife.bedrock.sidecar.metric.plugin;
 
-import com.ebaolife.bedrock.sidecar.metric.plugin.impl.DBMybtisPlusPlugin;
-import com.ebaolife.bedrock.sidecar.metric.plugin.impl.EndpointsSpringMvcInjectPlugin;
-import com.ebaolife.bedrock.sidecar.metric.plugin.impl.RpcFeign11Plugin;
-import com.ebaolife.bedrock.sidecar.metric.plugin.impl.RpcFeign9Plugin;
+import com.ebaolife.bedrock.sidecar.metric.plugin.impl.*;
 import com.ebaolife.bedrock.sidecar.common.util.Logger;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -24,6 +21,8 @@ public class PluginAdapter {
         PLUGIN_LIST.add(new RpcFeign11Plugin());
         PLUGIN_LIST.add(new RpcFeign9Plugin());
         PLUGIN_LIST.add(new DBMybtisPlusPlugin());
+        PLUGIN_LIST.add(new SpringCloudGatewayPlugin());
+        PLUGIN_LIST.add(new ZuulPlugin());
     }
 
     /**

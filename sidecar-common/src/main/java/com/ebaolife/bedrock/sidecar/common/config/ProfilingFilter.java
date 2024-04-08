@@ -75,6 +75,8 @@ public final class ProfilingFilter {
         includePackageExp.add("org/springframework/data/redis/core/DefaultSetOperations"); //redisTemplate
         includePackageExp.add("org/springframework/data/redis/core/DefaultZSetOperations"); //redisTemplate
         includePackageExp.add("com/baomidou/mybatisplus/core/override/MybatisMapperProxy"); //mybatis plus
+        includePackageExp.add("org/springframework/cloud/gateway/handler/FilteringWebHandler"); //springcloudgateway
+        includePackageExp.add("com/netflix/zuul/ZuulRunner"); //zuul
 //        includePackageExp.add("*Dao"); //querydsl
 //        includePackageExp.add("*DAO"); //querydsl
 //        includePackageExp.add("*Repository"); //querydsl
