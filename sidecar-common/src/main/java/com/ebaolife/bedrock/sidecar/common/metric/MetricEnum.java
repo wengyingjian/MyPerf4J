@@ -1,4 +1,4 @@
-package com.ebaolife.bedrock.sidecar.metric.constant;
+package com.ebaolife.bedrock.sidecar.common.metric;
 
 import cn.hutool.core.util.StrUtil;
 import com.ebaolife.bedrock.sidecar.common.constant.ClassLevelEnum;

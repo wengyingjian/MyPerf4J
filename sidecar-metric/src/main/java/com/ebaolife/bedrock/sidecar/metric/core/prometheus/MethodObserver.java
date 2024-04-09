@@ -3,7 +3,7 @@ package com.ebaolife.bedrock.sidecar.metric.core.prometheus;
 import com.ebaolife.bedrock.sidecar.metric.core.MethodTagMaintainer;
 import com.ebaolife.bedrock.sidecar.common.MethodTag;
 import com.ebaolife.bedrock.sidecar.common.util.StrUtils;
-import com.ebaolife.bedrock.sidecar.metric.constant.MetricEnum;
+import com.ebaolife.bedrock.sidecar.common.metric.MetricEnum;
 import io.prometheus.client.Summary;
 
 public class MethodObserver {

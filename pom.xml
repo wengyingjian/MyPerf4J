@@ -11,6 +11,7 @@
         <module>sidecar-arthas-agent</module>
         <module>sidecar-common</module>
         <module>sidecar-metric</module>
+        <module>sidecar-sdk</module>
     </modules>
 
     <name>sidecar-parent</name>

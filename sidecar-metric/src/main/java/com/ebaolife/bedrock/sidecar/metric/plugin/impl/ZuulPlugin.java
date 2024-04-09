@@ -2,7 +2,7 @@ package com.ebaolife.bedrock.sidecar.metric.plugin.impl;
 
 import com.ebaolife.bedrock.sidecar.common.util.Logger;
 import com.ebaolife.bedrock.sidecar.common.classloader.ClassLoaderHolder;
-import com.ebaolife.bedrock.sidecar.metric.constant.MetricEnum;
+import com.ebaolife.bedrock.sidecar.common.metric.MetricEnum;
 import com.ebaolife.bedrock.sidecar.metric.core.prometheus.MethodObserver;
 import com.ebaolife.bedrock.sidecar.metric.plugin.BaseInjectPlugin;
 
