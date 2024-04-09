@@ -10,7 +10,8 @@ import java.lang.reflect.Method;
 public class ZuulPlugin extends BaseInjectPlugin {
     @Override
     public boolean matches(String classifier) {
-        return "com/netflix/zuul/ZuulRunner#route".equals(classifier);
+        return false;
+//        return "com/netflix/zuul/ZuulRunner#route".equals(classifier);
     }
 
     @Override
