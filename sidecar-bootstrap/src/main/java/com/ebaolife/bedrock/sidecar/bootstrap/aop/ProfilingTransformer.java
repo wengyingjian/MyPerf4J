@@ -2,6 +2,7 @@ package com.ebaolife.bedrock.sidecar.bootstrap.aop;
 
 import com.ebaolife.bedrock.sidecar.common.config.ProfilingFilter;
 import com.ebaolife.bedrock.sidecar.common.util.Logger;
+import com.ebaolife.bedrock.sidecar.common.classloader.ClassLoaderHolder;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -21,6 +22,8 @@ public class ProfilingTransformer implements ClassFileTransformer {
                             ProtectionDomain protectionDomain,
                             byte[] classFileBuffer) {
         try {
+            ClassLoaderHolder.record(loader,className);
+
             if (ProfilingFilter.isNotNeedInject(className)) {
                 return classFileBuffer;
             }
