@@ -12,7 +12,8 @@ import java.lang.reflect.Method;
 public class SpringCloudGatewayPlugin extends BaseInjectPlugin {
     @Override
     public boolean matches(String classifier) {
-        return "org/springframework/cloud/gateway/handler/FilteringWebHandler#handle".equals(classifier);
+//        return "org/springframework/cloud/gateway/handler/FilteringWebHandler#handle".equals(classifier);
+        return false;
     }
 
     @Override
